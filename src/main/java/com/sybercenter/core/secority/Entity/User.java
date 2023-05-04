@@ -1,5 +1,6 @@
-package com.sybercenter.core.Entity;
+package com.sybercenter.core.secority.Entity;
 
+import com.sybercenter.core.secority.constant.LoginMethodType;
 import com.vladmihalcea.hibernate.type.json.JsonStringType;
 import lombok.Getter;
 import lombok.Setter;
@@ -24,13 +25,15 @@ public class User implements Serializable, UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
+    @Column(unique = true)
     private String username;
     private String password;
     private String firstName;
     private String lastName;
     private String email;
     private String phoneNumber;
+    @Enumerated(EnumType.STRING)
+    private LoginMethodType loginMethodType;
     private boolean enable;
 
     @ManyToMany(fetch = FetchType.EAGER)

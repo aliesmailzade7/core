@@ -1,7 +1,7 @@
-package com.sybercenter.core.jwt;
+package com.sybercenter.core.secority.jwt;
 
-import com.sybercenter.core.Entity.User;
-import com.sybercenter.core.Service.UserService;
+import com.sybercenter.core.secority.Entity.User;
+import com.sybercenter.core.secority.Service.UserService;
 import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -27,7 +27,7 @@ public class JwtFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         String jwt = parseJwt(request);
-        if (!ObjectUtils.isEmpty(jwt) && jwtUtils.validateJwtToken(jwt) && SecurityContextHolder.getContext().getAuthentication() == null) {
+        if (!ObjectUtils.isEmpty(jwt) && jwtUtils.validateJwtToken(jwt) && SecurityContextHolder.getContext().getAuthentication() == null) {//SecurityContextHolder.getContext().getAuthentication() == null اگر لاگین نبود
             Claims jwtTokenInfo = jwtUtils.getJwtTokenInfo(jwt);
             User user = (User) userService.loadUserByUsername(jwtTokenInfo.getSubject());
             UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());

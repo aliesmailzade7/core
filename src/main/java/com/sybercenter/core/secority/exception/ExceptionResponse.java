@@ -1,4 +1,4 @@
-package com.sybercenter.core.exception;
+package com.sybercenter.core.secority.exception;
 
 import lombok.*;
 
@@ -7,6 +7,8 @@ import java.util.List;
 
 @Getter
 @Setter
+@AllArgsConstructor
+@NoArgsConstructor
 public class ExceptionResponse {
     private Integer status;
     private String message;

@@ -1,4 +1,4 @@
-package com.sybercenter.core.constant;
+package com.sybercenter.core.secority.constant;
 
 import org.springframework.security.core.GrantedAuthority;
 

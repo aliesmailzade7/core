@@ -1,6 +1,6 @@
-package com.sybercenter.core.Entity;
+package com.sybercenter.core.secority.Entity;
 
-import com.sybercenter.core.constant.Authority;
+import com.sybercenter.core.secority.constant.Authority;
 import com.vladmihalcea.hibernate.type.json.JsonStringType;
 import lombok.Getter;
 import lombok.Setter;
@@ -19,8 +19,12 @@ public class Role {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
     private String name;
 
+    private String nickName;
+
     @ElementCollection(targetClass = Authority.class, fetch = FetchType.EAGER)
+    @Enumerated(EnumType.STRING)
     private List<Authority> authorities;
 }

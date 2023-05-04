@@ -1,8 +1,7 @@
-package com.sybercenter.core.handler;
+package com.sybercenter.core.secority.handler;
 
-import com.google.gson.Gson;
-import com.sybercenter.core.exception.AbstractException;
-import com.sybercenter.core.exception.ExceptionResponse;
+import com.sybercenter.core.secority.exception.AbstractException;
+import com.sybercenter.core.secority.exception.ExceptionResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -28,7 +27,7 @@ public class GlobalExceptionHandling extends ResponseEntityExceptionHandler {
         response.setDateTime(LocalDateTime.now());
         response.setMessage(e.getMessage());
         response.setStatus(e.getStatus());
-        ResponseEntity<Object> entity = new ResponseEntity<>(response,HttpStatus.valueOf(e.getStatus()));
+        ResponseEntity<Object> entity = new ResponseEntity<>(response, HttpStatus.valueOf(e.getStatus()));
         return entity;
     }
 

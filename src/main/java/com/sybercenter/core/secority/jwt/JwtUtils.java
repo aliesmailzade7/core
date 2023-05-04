@@ -1,6 +1,6 @@
-package com.sybercenter.core.jwt;
+package com.sybercenter.core.secority.jwt;
 
-import com.sybercenter.core.Entity.User;
+import com.sybercenter.core.secority.Entity.User;
 import io.jsonwebtoken.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,21 +24,31 @@ public class JwtUtils {
     private int jwtExpirationMs;
 
 
-    public String generateJwtToken(Authentication authentication) {
+    public JwtResponse generateJwtToken(Authentication authentication) {
         User userPrincipal = (User) authentication.getPrincipal();
         Claims claims = Jwts.claims().setSubject(userPrincipal.getUsername());
         claims.put("customerId", userPrincipal.getId());
-        claims.put("firstName", userPrincipal.getFirstName() + "");
-        claims.put("lastName", userPrincipal.getLastName() + "");
+        claims.put("firstName", userPrincipal.getFirstName());
+        claims.put("lastName", userPrincipal.getLastName());
         claims.put("roles", userPrincipal.getRoles());
-        claims.put("authorities", userPrincipal.getAuthorities().stream().map(GrantedAuthority::getAuthority).collect(Collectors.toList()));
+        claims.put("authorities", userPrincipal.getAuthorities()
+                .stream()
+                .map(GrantedAuthority::getAuthority)
+                .collect(Collectors.toList()));
 
-        return Jwts.builder()
+        String token = Jwts.builder()
                 .setClaims(claims)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date((new Date()).getTime() + jwtExpirationMs))
                 .signWith(SignatureAlgorithm.HS512, jwtSecret)
                 .compact();
+
+        return JwtResponse.builder()
+                .access_token(token)
+                .scope(userPrincipal.getRoles().stream().map(role -> role.getName()).collect(Collectors.toSet()))
+                .token_type("bearer")
+                .expires_in(System.currentTimeMillis() + jwtExpirationMs)
+                .build();
     }
 
     public Claims getJwtTokenInfo(String token) {
