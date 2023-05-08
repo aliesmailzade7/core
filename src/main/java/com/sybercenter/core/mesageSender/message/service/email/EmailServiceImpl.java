@@ -1,5 +1,6 @@
 package com.sybercenter.core.mesageSender.message.service.email;
 
+import com.sybercenter.core.base.constant.StaticMessage;
 import com.sybercenter.core.mesageSender.message.dto.MessageDTO;
 import com.sybercenter.core.base.dto.ResponseDTO;
 import lombok.RequiredArgsConstructor;
@@ -31,7 +32,7 @@ public class EmailServiceImpl implements EmailService {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return new ResponseDTO(HttpStatus.BAD_REQUEST.value(), "failed to send email");
+        return new ResponseDTO(StaticMessage.RESPONSE_CODE.NOT_OK, "failed to send email");
     }
 
 }

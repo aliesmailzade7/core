@@ -1,5 +1,6 @@
 package com.sybercenter.core.secority.handler;
 
+import com.sybercenter.core.base.constant.StaticMessage;
 import com.sybercenter.core.mesageSender.message.MessageSender;
 import com.sybercenter.core.secority.Entity.User;
 import com.sybercenter.core.secority.Service.UserService;
@@ -102,7 +103,7 @@ public class AuthHandler {
             //toDo send otp
             Integer otp = otpHandler.generateOTP(username);
             messageSender.sendOtp(username, otp);
-            return new ResponseDTO<>(HttpStatus.NOT_FOUND.value(), "not found user");
+            return new ResponseDTO<>(StaticMessage.RESPONSE_CODE.NOT_Found, StaticMessage.RESPONSE_MESSAGE.NOT_FOUND_USERNAME);
         } else {
             UserExistDTO userExistDTO = new UserExistDTO();
             userExistDTO.setHasAccount(true);
@@ -115,7 +116,7 @@ public class AuthHandler {
                 Integer otp = otpHandler.generateOTP(username);
                 messageSender.sendOtp(username, otp);
             }
-            return new ResponseDTO<>(HttpStatus.OK.value(), "user has account", userExistDTO);
+            return new ResponseDTO<>(HttpStatus.OK.value(), StaticMessage.RESPONSE_MESSAGE.USER_HAS_ACCOUNT, userExistDTO);
         }
     }
 
