@@ -1,4 +1,4 @@
-package com.sybercenter.core.secority.exception;
+package com.sybercenter.core.base.dto;
 
 import lombok.*;
 
@@ -9,7 +9,7 @@ import java.util.List;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class ExceptionResponse {
+public class ExceptionResponseDTO {
     private Integer status;
     private String message;
     private LocalDateTime dateTime;

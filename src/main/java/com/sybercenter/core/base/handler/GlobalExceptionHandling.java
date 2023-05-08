@@ -1,7 +1,7 @@
-package com.sybercenter.core.secority.handler;
+package com.sybercenter.core.base.handler;
 
-import com.sybercenter.core.secority.exception.AbstractException;
-import com.sybercenter.core.secority.exception.ExceptionResponse;
+import com.sybercenter.core.base.exception.AbstractException;
+import com.sybercenter.core.base.dto.ExceptionResponseDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -23,7 +23,7 @@ public class GlobalExceptionHandling extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(AbstractException.class)
     ResponseEntity<Object> handleAbstractExceptions(AbstractException e) {
-        ExceptionResponse response = new ExceptionResponse();
+        ExceptionResponseDTO response = new ExceptionResponseDTO();
         response.setDateTime(LocalDateTime.now());
         response.setMessage(e.getMessage());
         response.setStatus(e.getStatus());
@@ -33,9 +33,9 @@ public class GlobalExceptionHandling extends ResponseEntityExceptionHandler {
 
     @Override
     protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException e, HttpHeaders headers, HttpStatus status, WebRequest request) {
-        List<ExceptionResponse.ApiValidationError> subErrors = new ArrayList<>();
+        List<ExceptionResponseDTO.ApiValidationError> subErrors = new ArrayList<>();
         for (FieldError fieldError : e.getBindingResult().getFieldErrors()) {
-            ExceptionResponse.ApiValidationError apiValidationError = ExceptionResponse.ApiValidationError.builder()
+            ExceptionResponseDTO.ApiValidationError apiValidationError = ExceptionResponseDTO.ApiValidationError.builder()
                     .field(fieldError.getField())
                     .message(fieldError.getDefaultMessage())
                     .rejectedValue(fieldError.getRejectedValue())
@@ -45,7 +45,7 @@ public class GlobalExceptionHandling extends ResponseEntityExceptionHandler {
             subErrors.add(apiValidationError);
         }
 
-        ExceptionResponse response = new ExceptionResponse();
+        ExceptionResponseDTO response = new ExceptionResponseDTO();
         response.setDateTime(LocalDateTime.now());
         response.setMessage("Method Argument Not Valid");
         response.setStatus(HttpStatus.BAD_REQUEST.value());

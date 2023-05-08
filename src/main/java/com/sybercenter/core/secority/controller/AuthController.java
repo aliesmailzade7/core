@@ -1,9 +1,11 @@
-package com.sybercenter.core.secority.jwt;
+package com.sybercenter.core.secority.controller;
 
-import com.sybercenter.core.secority.dto.ResponseDTO;
+import com.sybercenter.core.base.dto.ResponseDTO;
 import com.sybercenter.core.secority.dto.UserDTO;
 import com.sybercenter.core.secority.dto.UserExistDTO;
+import com.sybercenter.core.secority.dto.VerifyTokenRequestDTO;
 import com.sybercenter.core.secority.handler.AuthHandler;
+import com.sybercenter.core.secority.handler.OtpHandler;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,13 +21,20 @@ import javax.validation.Valid;
 public class AuthController {
 
     private final AuthHandler authHandler;
+    private final OtpHandler otpHandler;
 
+    @PostMapping("password-login")
+    @Operation(summary = "login user by password")
+    public ResponseEntity<?> loginByPassword(@Valid @RequestBody VerifyTokenRequestDTO verifyTokenRequestDTO) {
+        log.info("REST request to login user by password with : {}", verifyTokenRequestDTO);
+        return ResponseEntity.ok().body(authHandler.loginWithPassword(verifyTokenRequestDTO));
+    }
 
-    @PostMapping("login")
-    @Operation(summary = "login user")
-    public ResponseEntity<?> login(@RequestBody JwtAuth jwtAuth) {
-        log.info("REST request to login user with jwtAuth : {}", jwtAuth);
-        return ResponseEntity.ok().body(authHandler.login(jwtAuth));
+    @PostMapping("otp-login")
+    @Operation(summary = "login user by otp")
+    public ResponseEntity<?> loginByOtp(@Valid @RequestBody VerifyTokenRequestDTO verifyTokenRequestDTO) {
+        log.info("REST request to login user by otp with : {}", verifyTokenRequestDTO);
+        return ResponseEntity.ok().body(authHandler.loginWithOtp(verifyTokenRequestDTO));
     }
 
     @PostMapping("user-existence/{username}")
@@ -33,8 +42,7 @@ public class AuthController {
     public ResponseEntity<?> userExistence(@PathVariable String username) {
         log.info("REST request to check user has account with username : {}", username);
         ResponseDTO<UserExistDTO> existUser = authHandler.isExistUser(username);
-        return ResponseEntity.status(existUser.getStatus())
-                .body(existUser);
+        return ResponseEntity.status(existUser.getStatus()).body(existUser);
     }
 
     @PostMapping("register")

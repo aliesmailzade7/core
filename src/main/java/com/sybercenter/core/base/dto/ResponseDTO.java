@@ -1,4 +1,4 @@
-package com.sybercenter.core.secority.dto;
+package com.sybercenter.core.base.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -11,4 +11,9 @@ public class ResponseDTO<T> {
     private Integer status;
     private String message;
     private T data;
+
+    public ResponseDTO(Integer status, String message) {
+        this.status = status;
+        this.message = message;
+    }
 }

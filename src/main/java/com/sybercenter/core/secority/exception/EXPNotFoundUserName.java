@@ -2,9 +2,9 @@ package com.sybercenter.core.secority.exception;
 
 import com.sybercenter.core.base.exception.AbstractBadRequestException;
 
-public class EXPInvalidVerifyCode extends AbstractBadRequestException {
+public class EXPNotFoundUserName extends AbstractBadRequestException {
     @Override
     public String getMessage() {
-        return "کد تایید نامعتبر است.";
+        return "کاربر یافت نشد.";
     }
 }

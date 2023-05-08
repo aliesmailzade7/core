@@ -1,4 +1,4 @@
-package com.sybercenter.core.secority.exception;
+package com.sybercenter.core.base.exception;
 
 public abstract class AbstractException extends RuntimeException {
 
