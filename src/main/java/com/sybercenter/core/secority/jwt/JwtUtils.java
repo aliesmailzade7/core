@@ -3,14 +3,19 @@ package com.sybercenter.core.secority.jwt;
 import com.sybercenter.core.secority.Entity.Role;
 import com.sybercenter.core.secority.Entity.User;
 import com.sybercenter.core.secority.Repository.UserRepository;
+import com.sybercenter.core.secority.Service.UserService;
 import com.sybercenter.core.secority.dto.JwtResponseDTO;
+import com.sybercenter.core.secority.exception.EXPNotFoundUserName;
 import io.jsonwebtoken.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.util.ObjectUtils;
 
 import java.util.Base64;
 import java.util.Date;
@@ -21,7 +26,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class JwtUtils {
 
-    private final UserRepository userRepository;
+    private final UserService userService;
 
     @Value("${jwtSecret}")
     private String jwtSecret;
@@ -89,18 +94,19 @@ public class JwtUtils {
         return false;
     }
 
-//    /**
-//     * Create token after verified OTP code
-//     *
-//     * @param username provided username
-//     * @return JwtResponse
-//     */
-//    public JwtResponse createTokenAfterVerifiedOtp(String username) {
-//        User user = userRepository
-//                .findByUsername(username)
-//                .orElseThrow(EXPInvalidUserOrOTp::new);
-//
-//        Authentication authentication = new UsernamePasswordAuthenticationToken(user.getUsername(), user.getPassword());
-//        return generateJwtToken(authentication);
-//    }
+    /**
+     * Create token after verified OTP code
+     *
+     * @param username provided username
+     * @return JwtResponse
+     */
+    public JwtResponseDTO generateTokenAfterVerifiedOtp(String username) {
+        User user = (User) userService.loadUserByUsername(username);
+        if (ObjectUtils.isEmpty(user)) {
+            throw new EXPNotFoundUserName();
+        }
+        UsernamePasswordAuthenticationToken loginToken = new UsernamePasswordAuthenticationToken(user, null);
+        SecurityContextHolder.getContext().setAuthentication(loginToken);
+        return generateJwtToken(loginToken);
+    }
 }

@@ -4,7 +4,9 @@ import com.sybercenter.core.mesageSender.message.constant.MessageType;
 import org.springframework.util.ObjectUtils;
 
 import javax.persistence.AttributeConverter;
+import javax.persistence.Converter;
 
+@Converter(autoApply = true)
 public class MessageTypeConverter implements AttributeConverter<MessageType, Integer> {
     @Override
     public Integer convertToDatabaseColumn(MessageType attribute) {

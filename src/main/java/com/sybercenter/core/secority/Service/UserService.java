@@ -3,6 +3,7 @@ package com.sybercenter.core.secority.Service;
 import com.sybercenter.core.secority.Entity.Role;
 import com.sybercenter.core.secority.Entity.User;
 import com.sybercenter.core.secority.Repository.UserRepository;
+import com.sybercenter.core.secority.constant.LoginMethodType;
 import com.sybercenter.core.secority.constant.UserRole;
 import com.sybercenter.core.secority.dto.UserDTO;
 import com.sybercenter.core.secority.mapper.UserMapper;
@@ -11,6 +12,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.util.ObjectUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -45,5 +47,13 @@ public class UserService implements UserDetailsService {
         }
         user.setRoles(userRoles);
         userRepository.save(user);
+    }
+
+    public void updateLoginMethodType(String username, LoginMethodType loginMethodTypeId) {
+        User user = (User) loadUserByUsername(username);
+        if (ObjectUtils.isEmpty(user) && (ObjectUtils.isEmpty(user.getLoginMethodType()) || !user.getLoginMethodType().equals(loginMethodTypeId))) {
+            user.setLoginMethodType(loginMethodTypeId);
+            userRepository.save(user);
+        }
     }
 }

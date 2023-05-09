@@ -1,7 +1,6 @@
 package com.sybercenter.core.mesageSender.message.entity;
 
 import com.sybercenter.core.mesageSender.message.constant.MessageType;
-import com.sybercenter.core.mesageSender.message.converter.MessageTypeConverter;
 import com.sybercenter.core.mesageSender.message.converter.mapConverterJson;
 import lombok.*;
 

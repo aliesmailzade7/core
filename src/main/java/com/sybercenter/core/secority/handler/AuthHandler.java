@@ -54,6 +54,8 @@ public class AuthHandler {
             JwtResponseDTO jwtResponseDTO = jwtUtils.generateJwtToken(authentication);
 
             SecurityContextHolder.getContext().setAuthentication(authentication);
+            //ToDo update login method type
+            userService.updateLoginMethodType(verifyTokenRequestDTO.getUsername(), LoginMethodType.PASSWORD);
 
             return new ResponseDTO<>(HttpStatus.OK.value(), "login success", jwtResponseDTO);
         } catch (AuthenticationException exception) {
@@ -76,15 +78,11 @@ public class AuthHandler {
         if (!isOtpValid) {
             throw new EXPInvalidVerifyCode();
         }
-        User user = (User) userService.loadUserByUsername(username);
-        if (ObjectUtils.isEmpty(user)) {
-            throw new EXPNotFoundUserName();
-        }
+        JwtResponseDTO jwtResponseDTO = jwtUtils.generateTokenAfterVerifiedOtp(username);
 
-        UsernamePasswordAuthenticationToken loginToken = new UsernamePasswordAuthenticationToken(user, null);
-        SecurityContextHolder.getContext().setAuthentication(loginToken);
+        //ToDo update login method type
+        userService.updateLoginMethodType(username, LoginMethodType.OTP);
 
-        JwtResponseDTO jwtResponseDTO = jwtUtils.generateJwtToken(loginToken);
         return new ResponseDTO<>(HttpStatus.OK.value(), "login success", jwtResponseDTO);
     }
 
@@ -97,7 +95,7 @@ public class AuthHandler {
      * @return UserExistDTO object - jwt token
      */
     public ResponseDTO<UserExistDTO> isExistUser(String username) {
-        //todo check user is exist
+        //todo check user is Exist
         UserDTO userDTO = userService.findByUserName(username);
         if (ObjectUtils.isEmpty(userDTO)) {
             //toDo send otp
@@ -108,13 +106,13 @@ public class AuthHandler {
             UserExistDTO userExistDTO = new UserExistDTO();
             userExistDTO.setHasAccount(true);
             userExistDTO.setIsEnable(userDTO.isEnable());
-            if (!ObjectUtils.isEmpty(userDTO.getLoginMethodType()) && userDTO.getLoginMethodType().equals(LoginMethodType.PASSWORD.name())) {
-                userExistDTO.setLoginMethodType(LoginMethodType.PASSWORD.name());
-            } else {
+            if (!ObjectUtils.isEmpty(userDTO.getLoginMethodType()) && userDTO.getLoginMethodType().equals(LoginMethodType.OTP.name())) {
                 userExistDTO.setLoginMethodType(LoginMethodType.OTP.name());
                 //toDo send otp
                 Integer otp = otpHandler.generateOTP(username);
                 messageSender.sendOtp(username, otp);
+            } else {
+                userExistDTO.setLoginMethodType(LoginMethodType.PASSWORD.name());
             }
             return new ResponseDTO<>(HttpStatus.OK.value(), StaticMessage.RESPONSE_MESSAGE.USER_HAS_ACCOUNT, userExistDTO);
         }
