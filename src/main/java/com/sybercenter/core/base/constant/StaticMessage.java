@@ -7,6 +7,7 @@ public interface StaticMessage {
         String NOT_FOUND_USERNAME = "کاربر یافت نشد.";
         String Duplicate_USERNAME = "نام کاربری تکراری است.";
         String INVALID_MESSAGE_TYPE = "نوع پیام نامعتبر است.";
+        String INVALID_REFRESH_TOKEN = "Refresh token was expired. Please make a new signin request";
     }
 
     interface RESPONSE_CODE {

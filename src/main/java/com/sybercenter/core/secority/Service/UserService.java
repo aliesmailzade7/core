@@ -56,4 +56,11 @@ public class UserService implements UserDetailsService {
             userRepository.save(user);
         }
     }
+
+    public void updateLoginMethodType(User user, LoginMethodType loginMethodTypeId) {
+        if (ObjectUtils.isEmpty(user.getLoginMethodType()) || !user.getLoginMethodType().equals(loginMethodTypeId)) {
+            user.setLoginMethodType(loginMethodTypeId);
+            userRepository.save(user);
+        }
+    }
 }

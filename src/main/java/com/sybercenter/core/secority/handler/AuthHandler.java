@@ -1,12 +1,14 @@
 package com.sybercenter.core.secority.handler;
 
 import com.sybercenter.core.base.constant.StaticMessage;
+import com.sybercenter.core.base.dto.ResponseDTO;
 import com.sybercenter.core.mesageSender.message.MessageSender;
 import com.sybercenter.core.secority.Entity.User;
+import com.sybercenter.core.secority.Service.RefreshTokenService;
 import com.sybercenter.core.secority.Service.UserService;
 import com.sybercenter.core.secority.constant.LoginMethodType;
 import com.sybercenter.core.secority.constant.UserRole;
-import com.sybercenter.core.base.dto.ResponseDTO;
+import com.sybercenter.core.secority.dto.JwtResponseDTO;
 import com.sybercenter.core.secority.dto.UserDTO;
 import com.sybercenter.core.secority.dto.UserExistDTO;
 import com.sybercenter.core.secority.dto.VerifyTokenRequestDTO;
@@ -14,7 +16,6 @@ import com.sybercenter.core.secority.exception.EXPInvalidUserOrPassword;
 import com.sybercenter.core.secority.exception.EXPInvalidVerifyCode;
 import com.sybercenter.core.secority.exception.EXPNotFoundUserName;
 import com.sybercenter.core.secority.exception.EXPUsernameIsExist;
-import com.sybercenter.core.secority.dto.JwtResponseDTO;
 import com.sybercenter.core.secority.jwt.JwtUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -40,6 +41,7 @@ public class AuthHandler {
     private final PasswordEncoder passwordEncoder;
     private final OtpHandler otpHandler;
     private final MessageSender messageSender;
+    private final RefreshTokenService refreshTokenService;
 
     /**
      * Method for login With Password.
@@ -54,8 +56,13 @@ public class AuthHandler {
             JwtResponseDTO jwtResponseDTO = jwtUtils.generateJwtToken(authentication);
 
             SecurityContextHolder.getContext().setAuthentication(authentication);
+
+            //ToDo set refresh token
+            User user = (User) authentication.getPrincipal();
+            jwtResponseDTO.setRefreshToken(refreshTokenService.createRefreshToken(user.getId()).getToken());
+
             //ToDo update login method type
-            userService.updateLoginMethodType(verifyTokenRequestDTO.getUsername(), LoginMethodType.PASSWORD);
+            userService.updateLoginMethodType(user, LoginMethodType.PASSWORD);
 
             return new ResponseDTO<>(HttpStatus.OK.value(), "login success", jwtResponseDTO);
         } catch (AuthenticationException exception) {
@@ -73,12 +80,19 @@ public class AuthHandler {
         String username = verifyTokenRequestDTO.getUsername();
         Integer otp = verifyTokenRequestDTO.getOtp();
 
+        User user = (User) userService.loadUserByUsername(username);
+        if (ObjectUtils.isEmpty(user)) {
+            throw new EXPNotFoundUserName();
+        }
+
         //toDo check is valid otp and exist user
         boolean isOtpValid = otpHandler.validateOTP(username, otp);
         if (!isOtpValid) {
             throw new EXPInvalidVerifyCode();
         }
-        JwtResponseDTO jwtResponseDTO = jwtUtils.generateTokenAfterVerifiedOtp(username);
+        JwtResponseDTO jwtResponseDTO = jwtUtils.generateTokenByUsername(username);
+        //ToDo set refresh token
+        jwtResponseDTO.setRefreshToken(refreshTokenService.createRefreshToken(user.getId()).getToken());
 
         //ToDo update login method type
         userService.updateLoginMethodType(username, LoginMethodType.OTP);
@@ -143,5 +157,4 @@ public class AuthHandler {
         //toDo add role and save user
         userService.setUserByRole(userDTO, new ArrayList<>(Collections.singleton(UserRole.ROLE_ADMIN)));
     }
-
 }

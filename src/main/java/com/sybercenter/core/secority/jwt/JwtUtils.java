@@ -1,15 +1,19 @@
 package com.sybercenter.core.secority.jwt;
 
+import com.sybercenter.core.base.dto.ResponseDTO;
+import com.sybercenter.core.secority.Entity.RefreshToken;
 import com.sybercenter.core.secority.Entity.Role;
 import com.sybercenter.core.secority.Entity.User;
-import com.sybercenter.core.secority.Repository.UserRepository;
+import com.sybercenter.core.secority.Service.RefreshTokenService;
 import com.sybercenter.core.secority.Service.UserService;
 import com.sybercenter.core.secority.dto.JwtResponseDTO;
 import com.sybercenter.core.secority.exception.EXPNotFoundUserName;
+import com.sybercenter.core.secority.exception.TokenRefreshException;
 import io.jsonwebtoken.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -27,6 +31,7 @@ import java.util.stream.Collectors;
 public class JwtUtils {
 
     private final UserService userService;
+    private final RefreshTokenService refreshTokenService;
 
     @Value("${jwtSecret}")
     private String jwtSecret;
@@ -100,7 +105,7 @@ public class JwtUtils {
      * @param username provided username
      * @return JwtResponse
      */
-    public JwtResponseDTO generateTokenAfterVerifiedOtp(String username) {
+    public JwtResponseDTO generateTokenByUsername(String username) {
         User user = (User) userService.loadUserByUsername(username);
         if (ObjectUtils.isEmpty(user)) {
             throw new EXPNotFoundUserName();
@@ -108,5 +113,18 @@ public class JwtUtils {
         UsernamePasswordAuthenticationToken loginToken = new UsernamePasswordAuthenticationToken(user, null);
         SecurityContextHolder.getContext().setAuthentication(loginToken);
         return generateJwtToken(loginToken);
+    }
+
+
+    public ResponseDTO<JwtResponseDTO> generateRefreshToken(String requestRefreshToken) {
+        return refreshTokenService.findByToken(requestRefreshToken)
+                .map(refreshTokenService::verifyExpiration)
+                .map(RefreshToken::getUser)
+                .map(user -> {
+                    JwtResponseDTO jwtResponseDTO = generateTokenByUsername(user.getUsername());
+                    jwtResponseDTO.setRefreshToken(requestRefreshToken);
+                    return new ResponseDTO<>(HttpStatus.OK.value(), "success refresh token", jwtResponseDTO);
+                })
+                .orElseThrow(TokenRefreshException::new);
     }
 }

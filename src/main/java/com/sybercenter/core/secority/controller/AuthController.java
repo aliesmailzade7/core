@@ -1,11 +1,12 @@
 package com.sybercenter.core.secority.controller;
 
 import com.sybercenter.core.base.dto.ResponseDTO;
+import com.sybercenter.core.secority.dto.TokenRefreshRequestDTO;
 import com.sybercenter.core.secority.dto.UserDTO;
 import com.sybercenter.core.secority.dto.UserExistDTO;
 import com.sybercenter.core.secority.dto.VerifyTokenRequestDTO;
 import com.sybercenter.core.secority.handler.AuthHandler;
-import com.sybercenter.core.secority.handler.OtpHandler;
+import com.sybercenter.core.secority.jwt.JwtUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,7 +22,7 @@ import javax.validation.Valid;
 public class AuthController {
 
     private final AuthHandler authHandler;
-    private final OtpHandler otpHandler;
+    private final JwtUtils jwtUtils;
 
     @PostMapping("password-login")
     @Operation(summary = "login user by password")
@@ -51,5 +52,11 @@ public class AuthController {
         log.info("REST request to add register user with dto: {}", dto);
         authHandler.registerUser(dto);
         return ResponseEntity.ok().build();
+    }
+
+
+    @PostMapping("/refresh-token")
+    public ResponseEntity<?> refreshtoken(@Valid @RequestBody TokenRefreshRequestDTO request) {
+        return ResponseEntity.ok(jwtUtils.generateRefreshToken(request.getRefreshToken()));
     }
 }
