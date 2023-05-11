@@ -12,8 +12,6 @@ import com.cybercenter.core.secority.Service.RefreshTokenService;
 import com.cybercenter.core.secority.Service.UserService;
 import com.cybercenter.core.secority.constant.LoginMethodType;
 import com.cybercenter.core.secority.constant.VerifyCodeType;
-import com.cybercenter.core.secority.dto.*;
-import com.cybercenter.core.secority.exception.*;
 import com.cybercenter.core.secority.jwt.JwtUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -170,14 +168,14 @@ public class AuthHandler {
         userDTO.setPassword(passwordEncoder.encode(userDTO.getPassword()));
 
         //toDo add role and save user
-        userService.setUserByRole(userDTO, new ArrayList<>(Collections.singleton(UserRole.ROLE_USER)));
+        userService.save(userDTO, new ArrayList<>(Collections.singleton(UserRole.ROLE_USER)));
     }
 
     /**
      * Method for request change password.
      * generate verify code and send to user
      *
-     * @param username -
+     * @param username - username
      */
     public void forgetPassword(String username) {
         UserDTO user = userService.findByUserName(username);
@@ -193,7 +191,8 @@ public class AuthHandler {
      * Method for set new password.
      * validate verify code and set new password.
      *
-     * @param changePasswordDTO - changePasswordDTO object
+     * @param changePasswordDTO     - changePasswordDTO object
+     * @throws EXPInvalidVerifyCode - verify code is invalid
      */
     public void setNewPassword(ChangePasswordDTO changePasswordDTO) {
         if (verificationHandler.validateVerifyCode(changePasswordDTO.getUsername(), changePasswordDTO.getVerifyCode(), VerifyCodeType.FORGET_PASSWORD)) {

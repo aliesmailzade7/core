@@ -20,6 +20,11 @@ public class LoginAttemptService {
     private final HttpServletRequest request;
 
 
+     /**
+     * method for calculate the number of failed logins from an IP address.
+     *
+     * @param key - ip address
+     */
     public void loginFailed(final String key) {
         int attempts;
         try {
@@ -31,6 +36,11 @@ public class LoginAttemptService {
         redisTemplate.opsForValue().set(key, attempts, DURATION, TimeUnit.DAYS);
     }
 
+    /**
+     * method for check ip address is blocked.
+     *
+\    * @return boolean - is block ip address
+     */
     public boolean isBlocked() {
         try {
             int attempts = (int) redisTemplate.opsForValue().get(getClientIP());
@@ -40,6 +50,11 @@ public class LoginAttemptService {
         }
     }
 
+    /**
+     * method for extracting the user's IP.
+     *
+     * @return ip address
+     */
     private String getClientIP() {
         String xfHeader = request.getHeader("X-Forwarded-For");
         if (xfHeader == null || xfHeader.isEmpty() || !xfHeader.contains(request.getRemoteAddr())) {

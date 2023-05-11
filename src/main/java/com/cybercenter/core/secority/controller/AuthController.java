@@ -48,6 +48,7 @@ public class AuthController {
     }
 
     @PostMapping("change-login-type")
+    @Operation(summary = "change login method type to verify code")
     public ResponseEntity<?> changeLoginMethod(@Valid @RequestBody VerifyRequestDTO verifyRequestDTO) {
         log.info("REST request to change login method type with username : {}", verifyRequestDTO.getUsername());
         authHandler.changeLoginMethodTypeToVerifyCode(verifyRequestDTO.getUsername());
@@ -64,12 +65,14 @@ public class AuthController {
 
 
     @PostMapping("refresh-token")
+    @Operation(summary = "generate new jwt token by refresh token")
     public ResponseEntity<?> refreshToken(@Valid @RequestBody TokenRefreshRequestDTO request) {
         log.info("REST request to refresh token with refreshToken: {}", request.getRefreshToken());
         return ResponseEntity.ok(jwtUtils.generateRefreshToken(request.getRefreshToken()));
     }
 
     @PostMapping("forget-password")
+    @Operation(summary = "create verify code to forget password")
     public ResponseEntity<?> forgetPassword(@Valid @RequestBody VerifyRequestDTO verifyRequestDTO) {
         log.info("REST request to refresh token with username : {}", verifyRequestDTO.getUsername());
         authHandler.forgetPassword(verifyRequestDTO.getUsername());
@@ -77,6 +80,7 @@ public class AuthController {
     }
 
     @PostMapping("new-password")
+    @Operation(summary = "set new password")
     public ResponseEntity<?> changePassword(@Valid @RequestBody ChangePasswordDTO dto) {
         log.info("REST request to set new password with dto : {}", dto);
         authHandler.setNewPassword(dto);

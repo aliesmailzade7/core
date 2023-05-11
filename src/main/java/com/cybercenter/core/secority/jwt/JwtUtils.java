@@ -40,6 +40,12 @@ public class JwtUtils {
     private int jwtExpirationMs;
 
 
+    /**
+     * Method for generate jwt token
+     *
+     * @param authentication   - Authentication object
+     * @return  JwtResponseDTO
+     */
     public JwtResponseDTO generateJwtToken(Authentication authentication) {
         User userPrincipal = (User) authentication.getPrincipal();
         Claims claims = Jwts.claims().setSubject(userPrincipal.getUsername());
@@ -81,6 +87,12 @@ public class JwtUtils {
         return Jwts.parser().setSigningKey(jwtSecret).parseClaimsJws(token).getBody();
     }
 
+    /**
+     * method for validated jwt token.
+     *
+     * @param jwtToken - username
+     * @return boolean - is valid token
+     */
     public boolean validateJwtToken(String jwtToken) {
         try {
             this.getJwtTokenInfo(jwtToken);
@@ -100,10 +112,11 @@ public class JwtUtils {
     }
 
     /**
-     * Create token after verified code
+     * method for generate new jwt token.
      *
-     * @param username provided username
-     * @return JwtResponse
+     * @param username             - username
+     * @throws EXPNotFoundUserName - user not found
+     * @return JwtResponseDTO
      */
     public JwtResponseDTO generateTokenByUsername(String username) {
         User user = (User) userService.loadUserByUsername(username);
@@ -116,6 +129,13 @@ public class JwtUtils {
     }
 
 
+    /**
+     * method for generate new jwt token by refresh token
+     * Checks that the token is valid and not expired so generate new jwt token
+     *
+     * @param requestRefreshToken - refresh token
+     * @return JwtResponseDTO
+     */
     public ResponseDTO<JwtResponseDTO> generateRefreshToken(String requestRefreshToken) {
         return refreshTokenService.findByToken(requestRefreshToken)
                 .map(refreshTokenService::verifyExpiration)

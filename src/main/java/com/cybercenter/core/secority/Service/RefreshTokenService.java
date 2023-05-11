@@ -3,6 +3,7 @@ package com.cybercenter.core.secority.Service;
 import com.cybercenter.core.secority.Entity.RefreshToken;
 import com.cybercenter.core.secority.Repository.RefreshTokenRepository;
 import com.cybercenter.core.secority.Repository.UserRepository;
+import com.cybercenter.core.secority.exception.EXPNotFoundUserName;
 import com.cybercenter.core.secority.exception.TokenRefreshException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -26,6 +27,12 @@ public class RefreshTokenService {
         return refreshTokenRepository.findByToken(token);
     }
 
+    /**
+     * method for generate refresh token and save it.
+     *
+     * @param userId - user id
+     * @return RefreshToken object
+     */
     public RefreshToken createRefreshToken(Long userId) {
         RefreshToken refreshToken = new RefreshToken();
 
@@ -37,6 +44,12 @@ public class RefreshTokenService {
         return refreshToken;
     }
 
+    /**
+     * method for check is valid refresh token.
+     *
+     * @param token - refresh token
+     * @return RefreshToken object
+     */
     public RefreshToken verifyExpiration(RefreshToken token) {
         if (token.getExpiryDate().compareTo(Instant.now()) < 0) {
             refreshTokenRepository.delete(token);

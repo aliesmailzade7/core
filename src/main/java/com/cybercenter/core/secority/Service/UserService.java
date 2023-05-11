@@ -5,6 +5,7 @@ import com.cybercenter.core.secority.Repository.UserRepository;
 import com.cybercenter.core.secority.constant.LoginMethodType;
 import com.cybercenter.core.secority.constant.UserRole;
 import com.cybercenter.core.secority.dto.UserDTO;
+import com.cybercenter.core.secority.exception.EXPInvalidVerifyCode;
 import com.cybercenter.core.secority.mapper.UserMapper;
 import com.cybercenter.core.secority.Entity.User;
 import lombok.RequiredArgsConstructor;
@@ -38,7 +39,13 @@ public class UserService implements UserDetailsService {
         userRepository.save(userMapper.ToEntity(dto));
     }
 
-    public void setUserByRole(UserDTO dto, List<UserRole> roles) {
+    /**
+     * Method for Assign the role to the user and save the user.
+     *
+     * @param dto    - UserDTO object
+     * @param roles  - list of UserRole
+     */
+    public void save(UserDTO dto, List<UserRole> roles) {
         User user = userMapper.ToEntity(dto);
         List<Role> userRoles = new ArrayList<>();
         for (UserRole role : roles) {
@@ -49,6 +56,12 @@ public class UserService implements UserDetailsService {
         userRepository.save(user);
     }
 
+    /**
+     * Method for update the last login method type.
+     *
+     * @param username           - Username
+     * @param loginMethodTypeId  - LoginMethodType object
+     */
     public void updateLoginMethodType(String username, LoginMethodType loginMethodTypeId) {
         User user = (User) loadUserByUsername(username);
         if (ObjectUtils.isEmpty(user) && (ObjectUtils.isEmpty(user.getLoginMethodType()) || !user.getLoginMethodType().equals(loginMethodTypeId))) {
@@ -57,6 +70,12 @@ public class UserService implements UserDetailsService {
         }
     }
 
+    /**
+     * Method for update the last login method type.
+     *
+     * @param user               - user object
+     * @param loginMethodTypeId  - LoginMethodType object
+     */
     public void updateLoginMethodType(User user, LoginMethodType loginMethodTypeId) {
         if (ObjectUtils.isEmpty(user.getLoginMethodType()) || !user.getLoginMethodType().equals(loginMethodTypeId)) {
             user.setLoginMethodType(loginMethodTypeId);
