@@ -100,7 +100,7 @@ public class JwtUtils {
     }
 
     /**
-     * Create token after verified OTP code
+     * Create token after verified code
      *
      * @param username provided username
      * @return JwtResponse

@@ -34,7 +34,7 @@ public class UserService implements UserDetailsService {
         return userMapper.toDTO(userRepository.findByUsername(username).orElse(null));
     }
 
-    public void setUser(UserDTO dto) {
+    public void save(UserDTO dto) {
         userRepository.save(userMapper.ToEntity(dto));
     }
 

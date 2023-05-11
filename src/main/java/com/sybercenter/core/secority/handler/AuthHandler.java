@@ -4,18 +4,14 @@ import com.sybercenter.core.base.constant.StaticMessage;
 import com.sybercenter.core.base.dto.ResponseDTO;
 import com.sybercenter.core.mesageSender.message.MessageSender;
 import com.sybercenter.core.secority.Entity.User;
+import com.sybercenter.core.secority.Service.LoginAttemptService;
 import com.sybercenter.core.secority.Service.RefreshTokenService;
 import com.sybercenter.core.secority.Service.UserService;
 import com.sybercenter.core.secority.constant.LoginMethodType;
 import com.sybercenter.core.secority.constant.UserRole;
-import com.sybercenter.core.secority.dto.JwtResponseDTO;
-import com.sybercenter.core.secority.dto.UserDTO;
-import com.sybercenter.core.secority.dto.UserExistDTO;
-import com.sybercenter.core.secority.dto.VerifyTokenRequestDTO;
-import com.sybercenter.core.secority.exception.EXPInvalidUserOrPassword;
-import com.sybercenter.core.secority.exception.EXPInvalidVerifyCode;
-import com.sybercenter.core.secority.exception.EXPNotFoundUserName;
-import com.sybercenter.core.secority.exception.EXPUsernameIsExist;
+import com.sybercenter.core.secority.constant.VerifyCodeType;
+import com.sybercenter.core.secority.dto.*;
+import com.sybercenter.core.secority.exception.*;
 import com.sybercenter.core.secority.jwt.JwtUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -39,18 +35,22 @@ public class AuthHandler {
     private final JwtUtils jwtUtils;
     private final UserService userService;
     private final PasswordEncoder passwordEncoder;
-    private final OtpHandler otpHandler;
+    private final VerificationHandler verificationHandler;
     private final MessageSender messageSender;
     private final RefreshTokenService refreshTokenService;
+    private final LoginAttemptService loginAttemptService;
 
     /**
      * Method for login With Password.
      *
-     * @param verifyTokenRequestDTO verifyTokenRequestDTO object
+     * @param passwordTokenRequestDTO PasswordTokenRequestDTO object
      * @return JwtResponse object - jwt token
      */
-    public ResponseDTO<JwtResponseDTO> loginWithPassword(VerifyTokenRequestDTO verifyTokenRequestDTO) {
-        UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(verifyTokenRequestDTO.getUsername(), verifyTokenRequestDTO.getPassword());
+    public ResponseDTO<JwtResponseDTO> loginWithPassword(PasswordTokenRequestDTO passwordTokenRequestDTO) {
+        if (loginAttemptService.isBlocked()) {
+            throw new EXPUserAuthBloack();
+        }
+        UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(passwordTokenRequestDTO.getUsername(), passwordTokenRequestDTO.getPassword());
         try {
             Authentication authentication = authenticationManager.authenticate(authenticationToken);
             JwtResponseDTO jwtResponseDTO = jwtUtils.generateJwtToken(authentication);
@@ -71,23 +71,26 @@ public class AuthHandler {
     }
 
     /**
-     * Method for login With OTP.
+     * Method for login With verify Code.
      *
-     * @param verifyTokenRequestDTO verifyTokenRequestDTO object
+     * @param verifyCodeTokenRequestDTO verifyTokenRequestDTO object
      * @return JwtResponse object - jwt token
      */
-    public ResponseDTO<JwtResponseDTO> loginWithOtp(VerifyTokenRequestDTO verifyTokenRequestDTO) {
-        String username = verifyTokenRequestDTO.getUsername();
-        Integer otp = verifyTokenRequestDTO.getOtp();
+    public ResponseDTO<JwtResponseDTO> loginWithVerifyCode(VerifyCodeTokenRequestDTO verifyCodeTokenRequestDTO) {
+        if (loginAttemptService.isBlocked()) {
+            throw new EXPUserAuthBloack();
+        }
+        String username = verifyCodeTokenRequestDTO.getUsername();
+        Integer verifyCode = verifyCodeTokenRequestDTO.getVerifyCode();
 
         User user = (User) userService.loadUserByUsername(username);
         if (ObjectUtils.isEmpty(user)) {
             throw new EXPNotFoundUserName();
         }
 
-        //toDo check is valid otp and exist user
-        boolean isOtpValid = otpHandler.validateOTP(username, otp);
-        if (!isOtpValid) {
+        //toDo check is valid verify code and exist user
+        boolean isValidVerifyCode = verificationHandler.validateVerifyCode(username, verifyCode, VerifyCodeType.LOGIN);
+        if (!isValidVerifyCode) {
             throw new EXPInvalidVerifyCode();
         }
         JwtResponseDTO jwtResponseDTO = jwtUtils.generateTokenByUsername(username);
@@ -95,15 +98,15 @@ public class AuthHandler {
         jwtResponseDTO.setRefreshToken(refreshTokenService.createRefreshToken(user.getId()).getToken());
 
         //ToDo update login method type
-        userService.updateLoginMethodType(username, LoginMethodType.OTP);
+        userService.updateLoginMethodType(username, LoginMethodType.VERIFY_CODE);
 
         return new ResponseDTO<>(HttpStatus.OK.value(), "login success", jwtResponseDTO);
     }
 
     /**
      * Method for check user isExist.
-     * if there is not any user, register otp will be sent.
-     * if there is a user, check type of login. if it is otp, login otp will be sent.
+     * if there is not any user, register verify code will be sent.
+     * if there is a user, check type of login. if it is verifyCode, login verify code will be sent.
      *
      * @param username - phone | email
      * @return UserExistDTO object - jwt token
@@ -112,19 +115,19 @@ public class AuthHandler {
         //todo check user is Exist
         UserDTO userDTO = userService.findByUserName(username);
         if (ObjectUtils.isEmpty(userDTO)) {
-            //toDo send otp
-            Integer otp = otpHandler.generateOTP(username);
-            messageSender.sendOtp(username, otp);
+            //toDo send verify code
+            Integer verifyCode = verificationHandler.generateVerifyCode(username, VerifyCodeType.REGISTER);
+            messageSender.sendVerifyCode(username, verifyCode);
             return new ResponseDTO<>(StaticMessage.RESPONSE_CODE.NOT_Found, StaticMessage.RESPONSE_MESSAGE.NOT_FOUND_USERNAME);
         } else {
             UserExistDTO userExistDTO = new UserExistDTO();
             userExistDTO.setHasAccount(true);
             userExistDTO.setIsEnable(userDTO.isEnable());
-            if (!ObjectUtils.isEmpty(userDTO.getLoginMethodType()) && userDTO.getLoginMethodType().equals(LoginMethodType.OTP.name())) {
-                userExistDTO.setLoginMethodType(LoginMethodType.OTP.name());
-                //toDo send otp
-                Integer otp = otpHandler.generateOTP(username);
-                messageSender.sendOtp(username, otp);
+            if (!ObjectUtils.isEmpty(userDTO.getLoginMethodType()) && userDTO.getLoginMethodType().equals(LoginMethodType.VERIFY_CODE.name())) {
+                userExistDTO.setLoginMethodType(LoginMethodType.VERIFY_CODE.name());
+                //toDo send verify code
+                Integer verifyCode = verificationHandler.generateVerifyCode(username, VerifyCodeType.LOGIN);
+                messageSender.sendVerifyCode(username, verifyCode);
             } else {
                 userExistDTO.setLoginMethodType(LoginMethodType.PASSWORD.name());
             }
@@ -147,14 +150,33 @@ public class AuthHandler {
         }
 
         //toDo check verifyCode
-        boolean validateOTP = otpHandler.validateOTP(userDTO.getUsername(), userDTO.getVerifyCode());
-        if (!validateOTP) {
+        boolean isValidVerifyCode = verificationHandler.validateVerifyCode(userDTO.getUsername(), userDTO.getVerifyCode(), VerifyCodeType.REGISTER);
+        if (!isValidVerifyCode) {
             throw new EXPInvalidVerifyCode();
         }
 
         userDTO.setPassword(passwordEncoder.encode(userDTO.getPassword()));
 
         //toDo add role and save user
-        userService.setUserByRole(userDTO, new ArrayList<>(Collections.singleton(UserRole.ROLE_ADMIN)));
+        userService.setUserByRole(userDTO, new ArrayList<>(Collections.singleton(UserRole.ROLE_USER)));
+    }
+
+    public void forgetPassword(String username) {
+        UserDTO user = userService.findByUserName(username);
+        if (ObjectUtils.isEmpty(user)) {
+            throw new EXPNotFoundUserName();
+        }
+
+        Integer verifyCode = verificationHandler.generateVerifyCode(username, VerifyCodeType.FORGET_PASSWORD);
+        messageSender.sendVerifyCode(username, verifyCode);
+    }
+
+    public void setNewPassword(ChangePasswordDTO dto) {
+        if (verificationHandler.validateVerifyCode(dto.getUsername(), dto.getVerifyCode(), VerifyCodeType.FORGET_PASSWORD)) {
+            UserDTO userDTO = userService.findByUserName(dto.getUsername());
+            userDTO.setPassword(passwordEncoder.encode(dto.getPassword()));
+            userService.save(userDTO);
+        } else
+            throw new EXPInvalidVerifyCode();
     }
 }

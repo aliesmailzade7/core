@@ -11,5 +11,5 @@ import java.io.Serializable;
 @Builder
 public class VerificationDTO implements Serializable {
     private String username;
-    private Integer otp;
+    private Integer verifyCode;
 }

@@ -25,20 +25,20 @@ public class MessageSender {
     private final MessageLogService messageLogService;
     private final TemplateService templateService;
 
-    public void sendOtp(String username, Integer otp) {
+    public void sendVerifyCode(String username, Integer verifyCode) {
         String usernameType = getUsernameType(username);
         if (!ObjectUtils.isEmpty(usernameType)) {
             switch (usernameType) {
-                case "phone" -> sendOtpSMS(username, otp);
-                case "email" -> sendOtpEmail(username, otp);
+                case "phone" -> sendVerifyCodeSMS(username, verifyCode);
+                case "email" -> sendVerifyCodeEmail(username, verifyCode);
             }
         }
     }
 
-    private void sendOtpEmail(String email, int otp) {
-        Template template = templateService.findByName(MessageTemplate.OTP_TEMPLATE.OTP_MESSAGE);
+    private void sendVerifyCodeEmail(String email, int verifyCode) {
+        Template template = templateService.findByName(MessageTemplate.VERIFY_CODE_TEMPLATE.VERIFY_CODE_MESSAGE);
         Map<String, String> tokens = new ManagedMap<>();
-        tokens.put("otp", String.valueOf(otp));
+        tokens.put("verifyCode", String.valueOf(verifyCode));
         String text = generateTextMessageByTokens(template.getText(), tokens);
         MessageDTO messageDTO= MessageDTO.builder()
                 .text(text)
@@ -59,8 +59,8 @@ public class MessageSender {
         return text;
     }
 
-    public void sendOtpSMS(String phoneNumber, int otp) {
-        System.out.println("send message to phone : " + otp);
+    private void sendVerifyCodeSMS(String phoneNumber, int verifyCode) {
+        System.out.println("send message to phone : " + verifyCode);
     }
 
     private String getUsernameType(String username) {

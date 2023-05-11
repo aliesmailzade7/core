@@ -1,6 +1,7 @@
 package com.sybercenter.core.secority.dto;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.sybercenter.core.secority.Entity.Role;
 import com.sybercenter.core.secority.constant.ValidationMessages;
 import lombok.Getter;
 import lombok.Setter;
@@ -19,6 +20,7 @@ public class UserDTO {
 
     @NotNull(message = ValidationMessages.USER.PASSWORD_REQUIRED)
     @Size(min = 4, message = ValidationMessages.USER.PASSWORD_LENGTH_VALIDATION)
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String password;
 
     @NotNull(message = ValidationMessages.USER.FIRST_NAME_REQUIRED)
@@ -35,12 +37,17 @@ public class UserDTO {
     private String phoneNumber;
 
     @NotNull(message = ValidationMessages.USER.VERIFY_CODE_REQUIRED)
-    @Max(value = 999999, message = ValidationMessages.AUTH.OTP_CODE_INVALID)
-    @Min(value = 0, message = ValidationMessages.AUTH.OTP_CODE_INVALID)
+    @Max(value = 999999, message = ValidationMessages.AUTH.VERIFY_CODE_INVALID)
+    @Min(value = 0, message = ValidationMessages.AUTH.VERIFY_CODE_INVALID)
     private Integer verifyCode;
 
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private boolean enable = true;
 
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private String loginMethodType;
+
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    private List<Role> roles;
 
 }

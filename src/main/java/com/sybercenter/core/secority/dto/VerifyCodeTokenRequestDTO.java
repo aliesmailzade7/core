@@ -8,13 +8,9 @@ import javax.validation.constraints.NotNull;
 
 @Getter
 @ToString
-public class VerifyTokenRequestDTO {
+public class VerifyCodeTokenRequestDTO extends VerifyRequestDTO{
 
-    @NotNull(message = ValidationMessages.USER.USERNAME_REQUIRED)
-    private String username;
-
-    private Integer otp;
-
-    private String password;
+    @NotNull(message = ValidationMessages.USER.VERIFY_CODE_REQUIRED)
+    private Integer verifyCode;
 
 }

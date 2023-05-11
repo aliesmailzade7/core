@@ -15,6 +15,6 @@ public interface ValidationMessages {
     }
 
     interface AUTH {
-        String OTP_CODE_INVALID = "کد یکبار مصرف نا معتبر است";
+        String VERIFY_CODE_INVALID = "کد یکبار مصرف نا معتبر است";
     }
 }
