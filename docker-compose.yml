@@ -1,0 +1,30 @@
+version: '3'
+
+services:
+  product-mysql:
+    container_name: "auth-mysql"
+    image: "mysql:latest"
+    environment:
+      TZ: Asia/Tehran
+      MYSQL_Root_PASSWORD: b1375app
+      MYSQL_DATABASE: cyber_center
+    networks:
+      - product-network
+    ports:
+      - 3306:3306
+    volumes:
+      - ./mysql_data:/var/lib/mysql
+
+
+  product-redis:
+    container_name: "auth-redis"
+    image: "redis:latest"
+    command: redis-server
+    networks:
+      - product-network
+    ports:
+      - 6379:6379
+
+networks:
+  product-network:
+    driver: bridge
