@@ -22,14 +22,14 @@ public class AuthController {
     private final AuthHandler authHandler;
     private final JwtUtils jwtUtils;
 
-    @PostMapping("password-login")
+    @PostMapping("login/password")
     @Operation(summary = "login user by password")
     public ResponseEntity<?> loginByPassword(@Valid @RequestBody PasswordTokenRequestDTO passwordTokenRequestDTO, HttpServletRequest request) {
         log.info("REST request to login user by password with : {}", passwordTokenRequestDTO);
         return ResponseEntity.ok().body(authHandler.loginWithPassword(passwordTokenRequestDTO));
     }
 
-    @PostMapping("verify-code-login")
+    @PostMapping("login/verify-code")
     @Operation(summary = "login user by verify code")
     public ResponseEntity<?> loginByVerifyCode(@Valid @RequestBody VerifyCodeTokenRequestDTO verifyCodeTokenRequestDTO) {
         log.info("REST request to login user by verify code with : {}", verifyCodeTokenRequestDTO);
@@ -44,12 +44,19 @@ public class AuthController {
         return ResponseEntity.status(existUser.getStatus()).body(existUser);
     }
 
+    @PostMapping("change-login-type")
+    public ResponseEntity<?> changeLoginMethod(@Valid @RequestBody VerifyRequestDTO verifyRequestDTO) {
+        log.info("REST request to change login method type with username : {}", verifyRequestDTO.getUsername());
+        authHandler.changeLoginMethodTypeToVerifyCode(verifyRequestDTO.getUsername());
+        return ResponseEntity.accepted().build();
+    }
+
     @PostMapping("register")
     @Operation(summary = "register user")
     public ResponseEntity<?> registerUSer(@Valid @RequestBody UserDTO dto) {
         log.info("REST request to add register user with dto: {}", dto);
         authHandler.registerUser(dto);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.accepted().build();
     }
 
 

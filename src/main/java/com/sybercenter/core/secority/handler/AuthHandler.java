@@ -136,6 +136,16 @@ public class AuthHandler {
     }
 
     /**
+     * Method for change login method type to verify code.
+     *
+     * @param username - phone | email
+     */
+    public void changeLoginMethodTypeToVerifyCode(String username){
+        Integer verifyCode = verificationHandler.generateVerifyCode(username, VerifyCodeType.LOGIN);
+        messageSender.sendVerifyCode(username, verifyCode);
+    }
+
+    /**
      * Method for register user.
      *
      * @param userDTO userDTO object
@@ -161,6 +171,12 @@ public class AuthHandler {
         userService.setUserByRole(userDTO, new ArrayList<>(Collections.singleton(UserRole.ROLE_USER)));
     }
 
+    /**
+     * Method for request change password.
+     * generate verify code and send to user
+     *
+     * @param username -
+     */
     public void forgetPassword(String username) {
         UserDTO user = userService.findByUserName(username);
         if (ObjectUtils.isEmpty(user)) {
@@ -171,10 +187,16 @@ public class AuthHandler {
         messageSender.sendVerifyCode(username, verifyCode);
     }
 
-    public void setNewPassword(ChangePasswordDTO dto) {
-        if (verificationHandler.validateVerifyCode(dto.getUsername(), dto.getVerifyCode(), VerifyCodeType.FORGET_PASSWORD)) {
-            UserDTO userDTO = userService.findByUserName(dto.getUsername());
-            userDTO.setPassword(passwordEncoder.encode(dto.getPassword()));
+    /**
+     * Method for set new password.
+     * validate verify code and set new password.
+     *
+     * @param changePasswordDTO - changePasswordDTO object
+     */
+    public void setNewPassword(ChangePasswordDTO changePasswordDTO) {
+        if (verificationHandler.validateVerifyCode(changePasswordDTO.getUsername(), changePasswordDTO.getVerifyCode(), VerifyCodeType.FORGET_PASSWORD)) {
+            UserDTO userDTO = userService.findByUserName(changePasswordDTO.getUsername());
+            userDTO.setPassword(passwordEncoder.encode(changePasswordDTO.getPassword()));
             userService.save(userDTO);
         } else
             throw new EXPInvalidVerifyCode();
