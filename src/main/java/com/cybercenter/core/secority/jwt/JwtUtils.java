@@ -84,7 +84,7 @@ public class JwtUtils {
 
 
     public Claims getJwtTokenInfo(String token) {
-        return Jwts.parser().setSigningKey(jwtSecret).parseClaimsJws(token).getBody();
+        return Jwts.parser().setSigningKey(getSigningKey()).parseClaimsJws(token).getBody();
     }
 
     /**

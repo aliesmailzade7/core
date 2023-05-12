@@ -27,7 +27,7 @@ public class JwtFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         String jwt = parseJwt(request);
-        if (!ObjectUtils.isEmpty(jwt) && jwtUtils.validateJwtToken(jwt) && SecurityContextHolder.getContext().getAuthentication() == null) {//SecurityContextHolder.getContext().getAuthentication() == null اگر لاگین نبود
+        if (!ObjectUtils.isEmpty(jwt) && jwtUtils.validateJwtToken(jwt) && SecurityContextHolder.getContext().getAuthentication() == null) {
             Claims jwtTokenInfo = jwtUtils.getJwtTokenInfo(jwt);
             User user = (User) userService.loadUserByUsername(jwtTokenInfo.getSubject());
             UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
