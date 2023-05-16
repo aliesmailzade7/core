@@ -7,6 +7,7 @@ import lombok.Setter;
 import org.hibernate.annotations.TypeDef;
 
 import javax.persistence.*;
+import java.io.Serializable;
 import java.util.List;
 
 @Entity
@@ -14,7 +15,7 @@ import java.util.List;
 @Getter
 @Setter
 @TypeDef(name = "json", typeClass = JsonStringType.class)
-public class Role {
+public class Role implements Serializable {
 
     @Id
     private Integer id;

@@ -48,15 +48,19 @@ public class RedisConfiguration {
     }
 
     @Bean
-    public JedisConnectionFactory getJedisConnectionFactory() {
+    public RedisStandaloneConfiguration redisStandaloneConfiguration() {
         RedisStandaloneConfiguration redisStandaloneConfiguration = new RedisStandaloneConfiguration();
-
         redisStandaloneConfiguration.setHostName(host);
         if (!StringUtil.isNullOrEmpty(password)) {
             redisStandaloneConfiguration.setPassword(RedisPassword.of(password));
         }
         redisStandaloneConfiguration.setPort(port);
-        return new JedisConnectionFactory(redisStandaloneConfiguration, getJedisClientConfiguration());
+        return redisStandaloneConfiguration;
+    }
+
+    @Bean
+    public JedisConnectionFactory getJedisConnectionFactory() {
+        return new JedisConnectionFactory(redisStandaloneConfiguration(), getJedisClientConfiguration());
     }
 
     @Bean

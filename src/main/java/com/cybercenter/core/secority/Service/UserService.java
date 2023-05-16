@@ -9,6 +9,7 @@ import com.cybercenter.core.secority.exception.EXPInvalidVerifyCode;
 import com.cybercenter.core.secority.mapper.UserMapper;
 import com.cybercenter.core.secority.Entity.User;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheConfig;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -20,6 +21,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@CacheConfig(cacheNames = "userService")
 public class UserService implements UserDetailsService {
 
     private final UserRepository userRepository;

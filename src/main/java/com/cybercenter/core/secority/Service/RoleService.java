@@ -3,8 +3,9 @@ package com.cybercenter.core.secority.Service;
 import com.cybercenter.core.secority.Entity.Role;
 import com.cybercenter.core.secority.Repository.RoleRepository;
 import com.cybercenter.core.secority.constant.UserRole;
-import com.cybercenter.core.secority.exception.EXPInvalidVerifyCode;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheConfig;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 
@@ -12,6 +13,7 @@ import java.util.ArrayList;
 
 @Service
 @RequiredArgsConstructor
+@CacheConfig(cacheNames = "role")
 public class RoleService {
     private final RoleRepository roleRepository;
 
@@ -21,6 +23,7 @@ public class RoleService {
      *
      * @param userRole - UserRole object
      */
+    @Cacheable(key = "#userRole.id")
     public Role createRoleIfNotFound(UserRole userRole) {
         Role role = roleRepository.findByName(userRole.getName());
         if (ObjectUtils.isEmpty(role)) {

@@ -3,17 +3,18 @@ package com.cybercenter.core.secority.handler;
 import com.cybercenter.core.base.constant.StaticMessage;
 import com.cybercenter.core.base.dto.ResponseDTO;
 import com.cybercenter.core.mesageSender.message.MessageSender;
-import com.cybercenter.core.secority.constant.UserRole;
-import com.cybercenter.core.secority.dto.*;
-import com.cybercenter.core.secority.exception.*;
 import com.cybercenter.core.secority.Entity.User;
 import com.cybercenter.core.secority.Service.LoginAttemptService;
 import com.cybercenter.core.secority.Service.RefreshTokenService;
 import com.cybercenter.core.secority.Service.UserService;
 import com.cybercenter.core.secority.constant.LoginMethodType;
+import com.cybercenter.core.secority.constant.UserRole;
 import com.cybercenter.core.secority.constant.VerifyCodeType;
+import com.cybercenter.core.secority.dto.*;
+import com.cybercenter.core.secority.exception.*;
 import com.cybercenter.core.secority.jwt.JwtUtils;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -29,6 +30,7 @@ import java.util.Collections;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class AuthHandler {
 
     private final AuthenticationManager authenticationManager;
@@ -140,7 +142,7 @@ public class AuthHandler {
      *
      * @param username - phone | email
      */
-    public void changeLoginMethodTypeToVerifyCode(String username){
+    public void changeLoginMethodTypeToVerifyCode(String username) {
         Integer verifyCode = verificationHandler.generateVerifyCode(username, VerifyCodeType.LOGIN);
         messageSender.sendVerifyCode(username, verifyCode);
     }
@@ -156,6 +158,7 @@ public class AuthHandler {
         //ToDo check username is exist
         UserDTO user = userService.findByUserName(userDTO.getUsername());
         if (!ObjectUtils.isEmpty(user)) {
+            log.warn("Not found user by username : {}", userDTO.getUsername());
             throw new EXPUsernameIsExist();
         }
 
@@ -191,7 +194,7 @@ public class AuthHandler {
      * Method for set new password.
      * validate verify code and set new password.
      *
-     * @param changePasswordDTO     - changePasswordDTO object
+     * @param changePasswordDTO - changePasswordDTO object
      * @throws EXPInvalidVerifyCode - verify code is invalid
      */
     public void setNewPassword(ChangePasswordDTO changePasswordDTO) {
