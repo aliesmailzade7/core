@@ -3,7 +3,7 @@ package com.cybercenter.core.secority.handler;
 import com.cybercenter.core.base.constant.StaticMessage;
 import com.cybercenter.core.base.dto.ResponseDTO;
 import com.cybercenter.core.mesageSender.message.MessageSender;
-import com.cybercenter.core.secority.Entity.User;
+import com.cybercenter.core.secority.Entity.UserPrincipal;
 import com.cybercenter.core.secority.Service.LoginAttemptService;
 import com.cybercenter.core.secority.Service.RefreshTokenService;
 import com.cybercenter.core.secority.Service.UserService;
@@ -60,11 +60,11 @@ public class AuthHandler {
             SecurityContextHolder.getContext().setAuthentication(authentication);
 
             //ToDo set refresh token
-            User user = (User) authentication.getPrincipal();
-            jwtResponseDTO.setRefreshToken(refreshTokenService.createRefreshToken(user.getId()).getToken());
+            UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
+            jwtResponseDTO.setRefreshToken(refreshTokenService.createRefreshToken(userPrincipal.user().getId()).getToken());
 
             //ToDo update login method type
-            userService.updateLoginMethodType(user, LoginMethodType.PASSWORD);
+            userService.updateLoginMethodType(userPrincipal.user(), LoginMethodType.PASSWORD);
 
             return new ResponseDTO<>(HttpStatus.OK.value(), "login success", jwtResponseDTO);
         } catch (AuthenticationException exception) {
@@ -85,7 +85,7 @@ public class AuthHandler {
         String username = verifyCodeTokenRequestDTO.getUsername();
         Integer verifyCode = verifyCodeTokenRequestDTO.getVerifyCode();
 
-        User user = (User) userService.loadUserByUsername(username);
+        UserDTO user = userService.findByUserName(username);
         if (ObjectUtils.isEmpty(user)) {
             throw new EXPNotFoundUserName();
         }

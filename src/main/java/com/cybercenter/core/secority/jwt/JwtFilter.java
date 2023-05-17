@@ -1,7 +1,7 @@
 package com.cybercenter.core.secority.jwt;
 
-import com.cybercenter.core.secority.Entity.User;
-import com.cybercenter.core.secority.Service.UserService;
+import com.cybercenter.core.secority.Entity.UserPrincipal;
+import com.cybercenter.core.secority.Service.UserDetailService;
 import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -21,7 +21,7 @@ import java.io.IOException;
 @RequiredArgsConstructor
 public class JwtFilter extends OncePerRequestFilter {
     private final JwtUtils jwtUtils;
-    private final UserService userService;
+    private final UserDetailService userDetailService;
 
 
     @Override
@@ -29,8 +29,8 @@ public class JwtFilter extends OncePerRequestFilter {
         String jwt = parseJwt(request);
         if (!ObjectUtils.isEmpty(jwt) && jwtUtils.validateJwtToken(jwt)) {
             Claims jwtTokenInfo = jwtUtils.getJwtTokenInfo(jwt);
-            User user = (User) userService.loadUserByUsername(jwtTokenInfo.getSubject());
-            UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
+            UserPrincipal userPrincipal = (UserPrincipal) userDetailService.loadUserByUsername(jwtTokenInfo.getSubject());
+            UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userPrincipal, null, userPrincipal.getAuthorities());
             SecurityContextHolder.getContext().setAuthentication(authentication);
         }
         filterChain.doFilter(request, response);

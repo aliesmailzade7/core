@@ -3,11 +3,11 @@ package com.cybercenter.core.secority.jwt;
 import com.cybercenter.core.base.dto.ResponseDTO;
 import com.cybercenter.core.secority.Entity.RefreshToken;
 import com.cybercenter.core.secority.Entity.Role;
+import com.cybercenter.core.secority.Entity.UserPrincipal;
 import com.cybercenter.core.secority.Service.RefreshTokenService;
-import com.cybercenter.core.secority.Service.UserService;
+import com.cybercenter.core.secority.Service.UserDetailService;
 import com.cybercenter.core.secority.exception.EXPNotFoundUserName;
 import com.cybercenter.core.secority.exception.TokenRefreshException;
-import com.cybercenter.core.secority.Entity.User;
 import com.cybercenter.core.secority.dto.JwtResponseDTO;
 import io.jsonwebtoken.*;
 import lombok.RequiredArgsConstructor;
@@ -30,7 +30,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class JwtUtils {
 
-    private final UserService userService;
+    private final UserDetailService userDetailService;
     private final RefreshTokenService refreshTokenService;
 
     @Value("${jwtSecret}")
@@ -47,12 +47,12 @@ public class JwtUtils {
      * @return  JwtResponseDTO
      */
     public JwtResponseDTO generateJwtToken(Authentication authentication) {
-        User userPrincipal = (User) authentication.getPrincipal();
+        UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
         Claims claims = Jwts.claims().setSubject(userPrincipal.getUsername());
-        claims.put("customerId", userPrincipal.getId());
-        claims.put("firstName", userPrincipal.getFirstName());
-        claims.put("lastName", userPrincipal.getLastName());
-        claims.put("roles", userPrincipal.getRoles()
+        claims.put("customerId", userPrincipal.user().getId());
+        claims.put("firstName", userPrincipal.user().getFirstName());
+        claims.put("lastName", userPrincipal.user().getLastName());
+        claims.put("roles", userPrincipal.user().getRoles()
                 .stream()
                 .map(Role::getName)
                 .collect(Collectors.toList()));
@@ -71,7 +71,7 @@ public class JwtUtils {
 
         return JwtResponseDTO.builder()
                 .accessToken(token)
-                .scope(userPrincipal.getRoles().stream().map(Role::getName).collect(Collectors.toSet()))
+                .scope(userPrincipal.user().getRoles().stream().map(Role::getName).collect(Collectors.toSet()))
                 .tokenType("bearer")
                 .expiresIn(System.currentTimeMillis() + jwtExpirationMs)
                 .build();
@@ -119,11 +119,11 @@ public class JwtUtils {
      * @return JwtResponseDTO
      */
     public JwtResponseDTO generateTokenByUsername(String username) {
-        User user = (User) userService.loadUserByUsername(username);
-        if (ObjectUtils.isEmpty(user)) {
+        UserPrincipal userPrincipal = (UserPrincipal) userDetailService.loadUserByUsername(username);
+        if (ObjectUtils.isEmpty(userPrincipal)) {
             throw new EXPNotFoundUserName();
         }
-        UsernamePasswordAuthenticationToken loginToken = new UsernamePasswordAuthenticationToken(user, null);
+        UsernamePasswordAuthenticationToken loginToken = new UsernamePasswordAuthenticationToken(userPrincipal, null);
         SecurityContextHolder.getContext().setAuthentication(loginToken);
         return generateJwtToken(loginToken);
     }
