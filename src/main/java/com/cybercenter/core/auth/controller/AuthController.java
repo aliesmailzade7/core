@@ -4,7 +4,6 @@ import com.cybercenter.core.auth.dto.*;
 import com.cybercenter.core.base.dto.ResponseDTO;
 import com.cybercenter.core.auth.service.AuthService;
 import com.cybercenter.core.secority.jwt.JwtUtils;
-import com.cybercenter.core.user.dto.*;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -58,7 +57,7 @@ public class AuthController {
 
     @PostMapping("register")
     @Operation(summary = "register user")
-    public ResponseEntity<?> registerUSer(@Valid @RequestBody UserDTO dto) {
+    public ResponseEntity<?> registerUSer(@Valid @RequestBody RegisterRequestDTO dto) {
         log.info("REST request to add register user with dto: {}", dto);
         authService.registerUser(dto);
         return ResponseEntity.accepted().build();

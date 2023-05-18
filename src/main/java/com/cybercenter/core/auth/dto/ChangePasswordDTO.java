@@ -1,10 +1,14 @@
 package com.cybercenter.core.auth.dto;
 
 import com.cybercenter.core.base.constant.ValidationMessages;
+import com.cybercenter.core.user.entity.Role;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
+import lombok.Setter;
 import lombok.ToString;
 
-import javax.validation.constraints.NotNull;
+import javax.validation.constraints.*;
+import java.util.List;
 
 @Getter
 @ToString

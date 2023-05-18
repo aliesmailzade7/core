@@ -12,7 +12,7 @@ import com.cybercenter.core.secority.jwt.UserPrincipal;
 import com.cybercenter.core.user.constant.BaseUserRole;
 import com.cybercenter.core.auth.constant.LoginMethodType;
 import com.cybercenter.core.auth.constant.VerifyCodeType;
-import com.cybercenter.core.user.dto.*;
+import com.cybercenter.core.user.entity.User;
 import com.cybercenter.core.user.exception.*;
 import com.cybercenter.core.user.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -87,7 +87,7 @@ public class AuthService {
         String username = verifyCodeTokenRequestDTO.getUsername();
         Integer verifyCode = verifyCodeTokenRequestDTO.getVerifyCode();
 
-        UserDTO user = userService.findByUserName(username);
+        User user = userService.findByUserName(username);
         if (ObjectUtils.isEmpty(user)) {
             throw new EXPNotFoundUserName();
         }
@@ -102,7 +102,7 @@ public class AuthService {
         jwtResponseDTO.setRefreshToken(refreshTokenService.createRefreshToken(user.getId()).getToken());
 
         //ToDo update login method type
-        userService.updateLoginMethodType(username, LoginMethodType.VERIFY_CODE);
+        userService.updateLoginMethodType(user, LoginMethodType.VERIFY_CODE);
 
         return new ResponseDTO<>(HttpStatus.OK.value(), "login success", jwtResponseDTO);
     }
@@ -117,8 +117,8 @@ public class AuthService {
      */
     public ResponseDTO<UserExistDTO> isExistUser(String username) {
         //todo check user is Exist
-        UserDTO userDTO = userService.findByUserName(username);
-        if (ObjectUtils.isEmpty(userDTO)) {
+        User user = userService.findByUserName(username);
+        if (ObjectUtils.isEmpty(user)) {
             //toDo send verify code
             Integer verifyCode = verificationService.generateVerifyCode(username, VerifyCodeType.REGISTER);
             messageSender.sendVerifyCode(username, verifyCode);
@@ -126,8 +126,8 @@ public class AuthService {
         } else {
             UserExistDTO userExistDTO = new UserExistDTO();
             userExistDTO.setHasAccount(true);
-            userExistDTO.setIsEnable(userDTO.isEnable());
-            if (!ObjectUtils.isEmpty(userDTO.getLoginMethodType()) && userDTO.getLoginMethodType().equals(LoginMethodType.VERIFY_CODE.name())) {
+            userExistDTO.setIsEnable(user.isEnable());
+            if (!ObjectUtils.isEmpty(user.getLoginMethodType()) && user.getLoginMethodType().equals(LoginMethodType.VERIFY_CODE)) {
                 userExistDTO.setLoginMethodType(LoginMethodType.VERIFY_CODE.name());
                 //toDo send verify code
                 Integer verifyCode = verificationService.generateVerifyCode(username, VerifyCodeType.LOGIN);
@@ -152,28 +152,27 @@ public class AuthService {
     /**
      * Method for register user.
      *
-     * @param userDTO userDTO object
+     * @param registerRequestDTO userDTO object
      * @throws EXPUsernameIsExist   when there is a user with this username
      * @throws EXPInvalidVerifyCode when verify code is not valid
      */
-    public void registerUser(UserDTO userDTO) {
+    public void registerUser(RegisterRequestDTO registerRequestDTO) {
         //ToDo check username isExist
-        UserDTO user = userService.findByUserName(userDTO.getUsername());
+        User user = userService.findByUserName(registerRequestDTO.getUsername());
         if (!ObjectUtils.isEmpty(user)) {
-            log.warn("Not found user by username : {}", userDTO.getUsername());
             throw new EXPUsernameIsExist();
         }
 
         //toDo check verifyCode
-        boolean isValidVerifyCode = verificationService.validateVerifyCode(userDTO.getUsername(), userDTO.getVerifyCode(), VerifyCodeType.REGISTER);
+        boolean isValidVerifyCode = verificationService.validateVerifyCode(registerRequestDTO.getUsername(), registerRequestDTO.getVerifyCode(), VerifyCodeType.REGISTER);
         if (!isValidVerifyCode) {
             throw new EXPInvalidVerifyCode();
         }
 
-        userDTO.setPassword(passwordEncoder.encode(userDTO.getPassword()));
+        registerRequestDTO.setPassword(passwordEncoder.encode(registerRequestDTO.getPassword()));
 
         //toDo add role and save user
-        userService.save(userDTO, new ArrayList<>(List.of(BaseUserRole.ROLE_USER, BaseUserRole.ROLE_AUTHOR)));
+        userService.save(registerRequestDTO, new ArrayList<>(List.of(BaseUserRole.ROLE_USER, BaseUserRole.ROLE_AUTHOR)));
     }
 
     /**
@@ -183,7 +182,7 @@ public class AuthService {
      * @param username - username
      */
     public void forgetPassword(String username) {
-        UserDTO user = userService.findByUserName(username);
+        User user = userService.findByUserName(username);
         if (ObjectUtils.isEmpty(user)) {
             throw new EXPNotFoundUserName();
         }
@@ -201,9 +200,9 @@ public class AuthService {
      */
     public void setNewPassword(ChangePasswordDTO changePasswordDTO) {
         if (verificationService.validateVerifyCode(changePasswordDTO.getUsername(), changePasswordDTO.getVerifyCode(), VerifyCodeType.FORGET_PASSWORD)) {
-            UserDTO userDTO = userService.findByUserName(changePasswordDTO.getUsername());
-            userDTO.setPassword(passwordEncoder.encode(changePasswordDTO.getPassword()));
-            userService.save(userDTO);
+            User user = userService.findByUserName(changePasswordDTO.getUsername());
+            user.setPassword(passwordEncoder.encode(changePasswordDTO.getPassword()));
+            userService.save(user);
         } else
             throw new EXPInvalidVerifyCode();
     }

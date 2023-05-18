@@ -1,13 +1,14 @@
 package com.cybercenter.core.secority.jwt;
 
+import com.cybercenter.core.auth.dto.JwtResponseDTO;
 import com.cybercenter.core.base.dto.ResponseDTO;
-import com.cybercenter.core.secority.model.RefreshToken;
 import com.cybercenter.core.secority.Service.RefreshTokenService;
 import com.cybercenter.core.secority.Service.UserDetailService;
+import com.cybercenter.core.secority.model.JwtUserDetails;
+import com.cybercenter.core.secority.model.RefreshToken;
+import com.cybercenter.core.user.entity.Role;
 import com.cybercenter.core.user.exception.EXPNotFoundUserName;
 import com.cybercenter.core.user.exception.TokenRefreshException;
-import com.cybercenter.core.auth.dto.JwtResponseDTO;
-import com.cybercenter.core.user.entity.Role;
 import io.jsonwebtoken.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,9 +20,12 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
+import org.springframework.util.StringUtils;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.Base64;
 import java.util.Date;
+import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
@@ -84,6 +88,33 @@ public class JwtUtils {
 
     public Claims getJwtTokenInfo(String token) {
         return Jwts.parser().setSigningKey(getSigningKey()).parseClaimsJws(token).getBody();
+    }
+
+    public JwtUserDetails getJwtTokenInfo(HttpServletRequest request) {
+        String token = parseJwt(request);
+        if (!ObjectUtils.isEmpty(token)) {
+            Claims claims = Jwts.parser().setSigningKey(getSigningKey()).parseClaimsJws(token).getBody();
+            JwtUserDetails jwtUserDetails = new JwtUserDetails();
+            jwtUserDetails.setId(String.valueOf(claims.get("customerId")));
+            jwtUserDetails.setFirstName((String) claims.get("firstName"));
+            jwtUserDetails.setUsername(claims.getSubject());
+            jwtUserDetails.setLasstName((String) claims.get("lastName"));
+            jwtUserDetails.setRoles((List<String>) claims.get("roles"));
+            jwtUserDetails.setAuthorities((List<String>) claims.get("authorities"));
+            return jwtUserDetails;
+        }
+        return null;
+    }
+
+    private String parseJwt(HttpServletRequest request) {
+        String headerAuth = request.getHeader("Authorization");
+        if (StringUtils.hasText(headerAuth) && headerAuth.toLowerCase().startsWith("bearer")) {
+            if (headerAuth.startsWith("bearer "))
+                return headerAuth.substring(7);
+            else
+                return headerAuth.substring(6);
+        }
+        return null;
     }
 
     /**

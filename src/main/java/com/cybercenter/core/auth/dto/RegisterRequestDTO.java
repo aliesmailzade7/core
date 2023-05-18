@@ -1,8 +1,8 @@
-package com.cybercenter.core.user.dto;
+package com.cybercenter.core.auth.dto;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.cybercenter.core.user.entity.Role;
 import com.cybercenter.core.base.constant.ValidationMessages;
+import com.cybercenter.core.user.entity.Role;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -13,7 +13,7 @@ import java.util.List;
 @Getter
 @Setter
 @ToString
-public class UserDTO {
+public class RegisterRequestDTO {
     private Long id;
     @NotNull(message = ValidationMessages.USER.USERNAME_REQUIRED)
     private String username;
@@ -32,7 +32,6 @@ public class UserDTO {
     @Email(message = ValidationMessages.USER.EMAIL_ADDRESS_WRONG_PATTERN)
     private String email;
 
-    @NotNull(message = ValidationMessages.USER.PHONE_NUMBER_REQUIRED)
     @Pattern(regexp = "^(09[0-9]{9})$", message = ValidationMessages.USER.PHONE_NUMBER_WRONG_PATTERN)
     private String phoneNumber;
 
