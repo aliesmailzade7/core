@@ -2,7 +2,7 @@ package com.cybercenter.core.secority.Service;
 
 import com.cybercenter.core.secority.Entity.Role;
 import com.cybercenter.core.secority.Repository.RoleRepository;
-import com.cybercenter.core.secority.constant.UserRole;
+import com.cybercenter.core.secority.constant.BaseUserRole;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheConfig;
 import org.springframework.cache.annotation.Cacheable;
@@ -21,15 +21,14 @@ public class RoleService {
      * Method for create new role.
      * If the role does not exist in the repository, it creates it
      *
-     * @param userRole - UserRole object
+     * @param baseUserRole - BaseUserRole object
      */
-    @Cacheable(key = "#userRole.id")
-    public Role createRoleIfNotFound(UserRole userRole) {
-        Role role = roleRepository.findByName(userRole.getName());
+    @Cacheable(key = "#baseUserRole.id")
+    public Role createRoleIfNotFound(BaseUserRole baseUserRole) {
+        Role role = roleRepository.findByName(baseUserRole.getName());
         if (ObjectUtils.isEmpty(role)) {
             Role newRole = new Role();
-            newRole.setId(userRole.getId());
-            newRole.setName(userRole.getName());
+            newRole.setName(baseUserRole.getName());
             newRole.setAuthorities(new ArrayList<>());
             return roleRepository.save(newRole);
         }

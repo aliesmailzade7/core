@@ -4,7 +4,7 @@ import com.cybercenter.core.secority.Entity.Role;
 import com.cybercenter.core.secority.Entity.User;
 import com.cybercenter.core.secority.Repository.UserRepository;
 import com.cybercenter.core.secority.constant.LoginMethodType;
-import com.cybercenter.core.secority.constant.UserRole;
+import com.cybercenter.core.secority.constant.BaseUserRole;
 import com.cybercenter.core.secority.dto.UserDTO;
 import com.cybercenter.core.secority.mapper.UserMapper;
 import lombok.RequiredArgsConstructor;
@@ -38,12 +38,12 @@ public class UserService {
      * Method for Assign the role to the user and save the user.
      *
      * @param dto   - UserDTO object
-     * @param roles - list of UserRole
+     * @param roles - list of BaseUserRole
      */
-    public void save(UserDTO dto, List<UserRole> roles) {
+    public void save(UserDTO dto, List<BaseUserRole> roles) {
         User user = userMapper.ToEntity(dto);
         List<Role> userRoles = new ArrayList<>();
-        for (UserRole role : roles) {
+        for (BaseUserRole role : roles) {
             Role roleByName = roleService.createRoleIfNotFound(role);
             userRoles.add(roleByName);
         }

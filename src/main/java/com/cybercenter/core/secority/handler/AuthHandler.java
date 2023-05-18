@@ -7,8 +7,9 @@ import com.cybercenter.core.secority.Entity.UserPrincipal;
 import com.cybercenter.core.secority.Service.LoginAttemptService;
 import com.cybercenter.core.secority.Service.RefreshTokenService;
 import com.cybercenter.core.secority.Service.UserService;
+import com.cybercenter.core.secority.Service.VerificationService;
+import com.cybercenter.core.secority.constant.BaseUserRole;
 import com.cybercenter.core.secority.constant.LoginMethodType;
-import com.cybercenter.core.secority.constant.UserRole;
 import com.cybercenter.core.secority.constant.VerifyCodeType;
 import com.cybercenter.core.secority.dto.*;
 import com.cybercenter.core.secority.exception.*;
@@ -26,7 +27,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
 
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.List;
 
 @Component
 @RequiredArgsConstructor
@@ -37,7 +38,7 @@ public class AuthHandler {
     private final JwtUtils jwtUtils;
     private final UserService userService;
     private final PasswordEncoder passwordEncoder;
-    private final VerificationHandler verificationHandler;
+    private final VerificationService verificationService;
     private final MessageSender messageSender;
     private final RefreshTokenService refreshTokenService;
     private final LoginAttemptService loginAttemptService;
@@ -91,7 +92,7 @@ public class AuthHandler {
         }
 
         //toDo check is valid verify code and exist user
-        boolean isValidVerifyCode = verificationHandler.validateVerifyCode(username, verifyCode, VerifyCodeType.LOGIN);
+        boolean isValidVerifyCode = verificationService.validateVerifyCode(username, verifyCode, VerifyCodeType.LOGIN);
         if (!isValidVerifyCode) {
             throw new EXPInvalidVerifyCode();
         }
@@ -118,7 +119,7 @@ public class AuthHandler {
         UserDTO userDTO = userService.findByUserName(username);
         if (ObjectUtils.isEmpty(userDTO)) {
             //toDo send verify code
-            Integer verifyCode = verificationHandler.generateVerifyCode(username, VerifyCodeType.REGISTER);
+            Integer verifyCode = verificationService.generateVerifyCode(username, VerifyCodeType.REGISTER);
             messageSender.sendVerifyCode(username, verifyCode);
             return new ResponseDTO<>(StaticMessage.RESPONSE_CODE.NOT_Found, StaticMessage.RESPONSE_MESSAGE.NOT_FOUND_USERNAME);
         } else {
@@ -128,7 +129,7 @@ public class AuthHandler {
             if (!ObjectUtils.isEmpty(userDTO.getLoginMethodType()) && userDTO.getLoginMethodType().equals(LoginMethodType.VERIFY_CODE.name())) {
                 userExistDTO.setLoginMethodType(LoginMethodType.VERIFY_CODE.name());
                 //toDo send verify code
-                Integer verifyCode = verificationHandler.generateVerifyCode(username, VerifyCodeType.LOGIN);
+                Integer verifyCode = verificationService.generateVerifyCode(username, VerifyCodeType.LOGIN);
                 messageSender.sendVerifyCode(username, verifyCode);
             } else {
                 userExistDTO.setLoginMethodType(LoginMethodType.PASSWORD.name());
@@ -143,7 +144,7 @@ public class AuthHandler {
      * @param username - phone | email
      */
     public void changeLoginMethodTypeToVerifyCode(String username) {
-        Integer verifyCode = verificationHandler.generateVerifyCode(username, VerifyCodeType.LOGIN);
+        Integer verifyCode = verificationService.generateVerifyCode(username, VerifyCodeType.LOGIN);
         messageSender.sendVerifyCode(username, verifyCode);
     }
 
@@ -155,7 +156,7 @@ public class AuthHandler {
      * @throws EXPInvalidVerifyCode when verify code is not valid
      */
     public void registerUser(UserDTO userDTO) {
-        //ToDo check username is exist
+        //ToDo check username isExist
         UserDTO user = userService.findByUserName(userDTO.getUsername());
         if (!ObjectUtils.isEmpty(user)) {
             log.warn("Not found user by username : {}", userDTO.getUsername());
@@ -163,7 +164,7 @@ public class AuthHandler {
         }
 
         //toDo check verifyCode
-        boolean isValidVerifyCode = verificationHandler.validateVerifyCode(userDTO.getUsername(), userDTO.getVerifyCode(), VerifyCodeType.REGISTER);
+        boolean isValidVerifyCode = verificationService.validateVerifyCode(userDTO.getUsername(), userDTO.getVerifyCode(), VerifyCodeType.REGISTER);
         if (!isValidVerifyCode) {
             throw new EXPInvalidVerifyCode();
         }
@@ -171,7 +172,7 @@ public class AuthHandler {
         userDTO.setPassword(passwordEncoder.encode(userDTO.getPassword()));
 
         //toDo add role and save user
-        userService.save(userDTO, new ArrayList<>(Collections.singleton(UserRole.ROLE_USER)));
+        userService.save(userDTO, new ArrayList<>(List.of(BaseUserRole.ROLE_USER, BaseUserRole.ROLE_AUTHOR)));
     }
 
     /**
@@ -186,7 +187,7 @@ public class AuthHandler {
             throw new EXPNotFoundUserName();
         }
 
-        Integer verifyCode = verificationHandler.generateVerifyCode(username, VerifyCodeType.FORGET_PASSWORD);
+        Integer verifyCode = verificationService.generateVerifyCode(username, VerifyCodeType.FORGET_PASSWORD);
         messageSender.sendVerifyCode(username, verifyCode);
     }
 
@@ -198,7 +199,7 @@ public class AuthHandler {
      * @throws EXPInvalidVerifyCode - verify code is invalid
      */
     public void setNewPassword(ChangePasswordDTO changePasswordDTO) {
-        if (verificationHandler.validateVerifyCode(changePasswordDTO.getUsername(), changePasswordDTO.getVerifyCode(), VerifyCodeType.FORGET_PASSWORD)) {
+        if (verificationService.validateVerifyCode(changePasswordDTO.getUsername(), changePasswordDTO.getVerifyCode(), VerifyCodeType.FORGET_PASSWORD)) {
             UserDTO userDTO = userService.findByUserName(changePasswordDTO.getUsername());
             userDTO.setPassword(passwordEncoder.encode(changePasswordDTO.getPassword()));
             userService.save(userDTO);

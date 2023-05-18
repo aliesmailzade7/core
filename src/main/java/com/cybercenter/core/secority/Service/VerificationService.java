@@ -1,4 +1,4 @@
-package com.cybercenter.core.secority.handler;
+package com.cybercenter.core.secority.Service;
 
 import com.cybercenter.core.secority.Repository.VerificationRepository;
 import com.cybercenter.core.secority.constant.VerifyCodeType;
@@ -14,7 +14,7 @@ import java.util.Random;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class VerificationHandler {
+public class VerificationService {
 
     private final VerificationRepository verificationRepository;
 
