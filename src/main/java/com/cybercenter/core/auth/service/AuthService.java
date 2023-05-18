@@ -3,7 +3,7 @@ package com.cybercenter.core.auth.service;
 import com.cybercenter.core.auth.dto.*;
 import com.cybercenter.core.base.constant.StaticMessage;
 import com.cybercenter.core.base.dto.ResponseDTO;
-import com.cybercenter.core.mesageSender.message.MessageSender;
+import com.cybercenter.core.mesage.message.MessageSender;
 import com.cybercenter.core.secority.Service.LoginAttemptService;
 import com.cybercenter.core.secority.Service.RefreshTokenService;
 import com.cybercenter.core.secority.Service.VerificationService;
