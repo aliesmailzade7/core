@@ -1,6 +1,5 @@
 package com.cybercenter.core.secority.jwt;
 
-import com.cybercenter.core.secority.Entity.UserPrincipal;
 import com.cybercenter.core.secority.Service.UserDetailService;
 import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;

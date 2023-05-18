@@ -1,9 +1,9 @@
 package com.cybercenter.core.secority.Service;
 
-import com.cybercenter.core.secority.Entity.User;
-import com.cybercenter.core.secority.Entity.UserPrincipal;
-import com.cybercenter.core.secority.Repository.UserRepository;
-import com.cybercenter.core.secority.exception.EXPNotFoundUserName;
+import com.cybercenter.core.user.entity.User;
+import com.cybercenter.core.secority.jwt.UserPrincipal;
+import com.cybercenter.core.user.repository.UserRepository;
+import com.cybercenter.core.user.exception.EXPNotFoundUserName;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;

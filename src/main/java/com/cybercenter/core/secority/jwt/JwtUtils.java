@@ -1,14 +1,13 @@
 package com.cybercenter.core.secority.jwt;
 
 import com.cybercenter.core.base.dto.ResponseDTO;
-import com.cybercenter.core.secority.Entity.RefreshToken;
-import com.cybercenter.core.secority.Entity.Role;
-import com.cybercenter.core.secority.Entity.UserPrincipal;
+import com.cybercenter.core.secority.model.RefreshToken;
 import com.cybercenter.core.secority.Service.RefreshTokenService;
 import com.cybercenter.core.secority.Service.UserDetailService;
-import com.cybercenter.core.secority.exception.EXPNotFoundUserName;
-import com.cybercenter.core.secority.exception.TokenRefreshException;
-import com.cybercenter.core.secority.dto.JwtResponseDTO;
+import com.cybercenter.core.user.exception.EXPNotFoundUserName;
+import com.cybercenter.core.user.exception.TokenRefreshException;
+import com.cybercenter.core.auth.dto.JwtResponseDTO;
+import com.cybercenter.core.user.entity.Role;
 import io.jsonwebtoken.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -43,8 +42,8 @@ public class JwtUtils {
     /**
      * Method for generate jwt token
      *
-     * @param authentication   - Authentication object
-     * @return  JwtResponseDTO
+     * @param authentication - Authentication object
+     * @return JwtResponseDTO
      */
     public JwtResponseDTO generateJwtToken(Authentication authentication) {
         UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
@@ -114,9 +113,9 @@ public class JwtUtils {
     /**
      * method for generate new jwt token.
      *
-     * @param username             - username
-     * @throws EXPNotFoundUserName - user not found
+     * @param username - username
      * @return JwtResponseDTO
+     * @throws EXPNotFoundUserName - user not found
      */
     public JwtResponseDTO generateTokenByUsername(String username) {
         UserPrincipal userPrincipal = (UserPrincipal) userDetailService.loadUserByUsername(username);

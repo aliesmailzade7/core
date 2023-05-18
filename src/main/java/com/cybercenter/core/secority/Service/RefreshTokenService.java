@@ -1,10 +1,9 @@
 package com.cybercenter.core.secority.Service;
 
-import com.cybercenter.core.secority.Entity.RefreshToken;
+import com.cybercenter.core.secority.model.RefreshToken;
 import com.cybercenter.core.secority.Repository.RefreshTokenRepository;
-import com.cybercenter.core.secority.Repository.UserRepository;
-import com.cybercenter.core.secority.exception.EXPNotFoundUserName;
-import com.cybercenter.core.secority.exception.TokenRefreshException;
+import com.cybercenter.core.user.repository.UserRepository;
+import com.cybercenter.core.user.exception.TokenRefreshException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;

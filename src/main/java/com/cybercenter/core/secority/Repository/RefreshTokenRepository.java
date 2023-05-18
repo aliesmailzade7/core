@@ -1,6 +1,6 @@
 package com.cybercenter.core.secority.Repository;
 
-import com.cybercenter.core.secority.Entity.RefreshToken;
+import com.cybercenter.core.secority.model.RefreshToken;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;
