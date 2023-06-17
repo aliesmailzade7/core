@@ -98,7 +98,7 @@ public class JwtUtils {
             jwtUserDetails.setId(String.valueOf(claims.get("customerId")));
             jwtUserDetails.setFirstName((String) claims.get("firstName"));
             jwtUserDetails.setUsername(claims.getSubject());
-            jwtUserDetails.setLasstName((String) claims.get("lastName"));
+            jwtUserDetails.setLastName((String) claims.get("lastName"));
             jwtUserDetails.setRoles((List<String>) claims.get("roles"));
             jwtUserDetails.setAuthorities((List<String>) claims.get("authorities"));
             return jwtUserDetails;

@@ -3,7 +3,6 @@ package com.cybercenter.core.secority.model;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.Collections;
 import java.util.List;
 
 @Getter
@@ -12,7 +11,7 @@ public class JwtUserDetails {
     private  String id;
     private  String username;
     private  String firstName;
-    private  String lasstName;
+    private  String lastName;
     private  String phoneNumber;
     private  List<String> roles;
     private  List<String> authorities;
