@@ -1,7 +1,6 @@
 package com.cybercenter.core.secority.jwt;
 
 import com.cybercenter.core.auth.dto.JwtResponseDTO;
-import com.cybercenter.core.base.dto.ResponseDTO;
 import com.cybercenter.core.secority.Service.RefreshTokenService;
 import com.cybercenter.core.secority.Service.UserDetailService;
 import com.cybercenter.core.secority.model.JwtUserDetails;
@@ -13,7 +12,6 @@ import io.jsonwebtoken.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -166,14 +164,14 @@ public class JwtUtils {
      * @param requestRefreshToken - refresh token
      * @return JwtResponseDTO
      */
-    public ResponseDTO<JwtResponseDTO> generateRefreshToken(String requestRefreshToken) {
+    public JwtResponseDTO generateRefreshToken(String requestRefreshToken) {
         return refreshTokenService.findByToken(requestRefreshToken)
                 .map(refreshTokenService::verifyExpiration)
                 .map(RefreshToken::getUser)
                 .map(user -> {
                     JwtResponseDTO jwtResponseDTO = generateTokenByUsername(user.getUsername());
                     jwtResponseDTO.setRefreshToken(requestRefreshToken);
-                    return new ResponseDTO<>(HttpStatus.OK.value(), "success refresh token", jwtResponseDTO);
+                    return jwtResponseDTO;
                 })
                 .orElseThrow(TokenRefreshException::new);
     }

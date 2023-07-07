@@ -1,9 +1,6 @@
 package com.cybercenter.core.user.service;
 
-import com.cybercenter.core.auth.dto.ChangePasswordDTO;
 import com.cybercenter.core.auth.dto.RegisterRequestDTO;
-import com.cybercenter.core.base.constant.StaticMessage;
-import com.cybercenter.core.base.dto.ResponseDTO;
 import com.cybercenter.core.user.dto.UserInfoDTO;
 import com.cybercenter.core.user.entity.Role;
 import com.cybercenter.core.user.entity.User;
@@ -87,10 +84,10 @@ public class UserService {
      *
      * @return UserInfoDTO - UserInfoDTO object
      */
-    public ResponseDTO<UserInfoDTO> getUserProfile(String userName) {
+    public UserInfoDTO getUserProfile(String userName) {
         User user = findByUserName(userName);
         if (!ObjectUtils.isEmpty(user))
-            return new ResponseDTO<>(StaticMessage.RESPONSE_CODE.OK, "user profile", userMapper.toDTO(user));
+            return userMapper.toDTO(user);
         else
             throw new EXPNotFoundUserName();
     }

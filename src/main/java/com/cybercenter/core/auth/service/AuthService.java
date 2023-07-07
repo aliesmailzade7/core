@@ -2,7 +2,6 @@ package com.cybercenter.core.auth.service;
 
 import com.cybercenter.core.auth.dto.*;
 import com.cybercenter.core.base.constant.StaticMessage;
-import com.cybercenter.core.base.dto.ResponseDTO;
 import com.cybercenter.core.mesage.message.MessageSender;
 import com.cybercenter.core.secority.Service.LoginAttemptService;
 import com.cybercenter.core.secority.Service.RefreshTokenService;
@@ -17,7 +16,6 @@ import com.cybercenter.core.user.exception.*;
 import com.cybercenter.core.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -50,7 +48,7 @@ public class AuthService {
      * @param passwordTokenRequestDTO PasswordTokenRequestDTO object
      * @return JwtResponse object - jwt token
      */
-    public ResponseDTO<JwtResponseDTO> loginWithPassword(PasswordTokenRequestDTO passwordTokenRequestDTO) {
+    public JwtResponseDTO loginWithPassword(PasswordTokenRequestDTO passwordTokenRequestDTO) {
         if (loginAttemptService.isBlocked()) {
             throw new EXPUserAuthBloack();
         }
@@ -68,7 +66,7 @@ public class AuthService {
             //ToDo update login method type
             userService.updateLoginMethodType(userPrincipal.user(), LoginMethodType.PASSWORD);
 
-            return new ResponseDTO<>(HttpStatus.OK.value(), "login success", jwtResponseDTO);
+            return jwtResponseDTO;
         } catch (AuthenticationException exception) {
             throw new EXPInvalidUserOrPassword();
         }
@@ -80,7 +78,7 @@ public class AuthService {
      * @param verifyCodeTokenRequestDTO verifyTokenRequestDTO object
      * @return JwtResponse object - jwt token
      */
-    public ResponseDTO<JwtResponseDTO> loginWithVerifyCode(VerifyCodeTokenRequestDTO verifyCodeTokenRequestDTO) {
+    public JwtResponseDTO loginWithVerifyCode(VerifyCodeTokenRequestDTO verifyCodeTokenRequestDTO) {
         if (loginAttemptService.isBlocked()) {
             throw new EXPUserAuthBloack();
         }
@@ -104,7 +102,7 @@ public class AuthService {
         //ToDo update login method type
         userService.updateLoginMethodType(user, LoginMethodType.VERIFY_CODE);
 
-        return new ResponseDTO<>(HttpStatus.OK.value(), "login success", jwtResponseDTO);
+        return jwtResponseDTO;
     }
 
     /**
@@ -115,27 +113,33 @@ public class AuthService {
      * @param username - phone | email
      * @return UserExistDTO object - jwt token
      */
-    public ResponseDTO<UserExistDTO> isExistUser(String username) {
+    public UserExistDTO isExistUser(String username) {
         //todo check user is Exist
         User user = userService.findByUserName(username);
         if (ObjectUtils.isEmpty(user)) {
             //toDo send verify code
             Integer verifyCode = verificationService.generateVerifyCode(username, VerifyCodeType.REGISTER);
             messageSender.sendVerifyCode(username, verifyCode);
-            return new ResponseDTO<>(StaticMessage.RESPONSE_CODE.NOT_Found, StaticMessage.RESPONSE_MESSAGE.NOT_FOUND_USERNAME);
+            return UserExistDTO.builder()
+                    .hasAccount(false)
+                    .message(StaticMessage.RESPONSE_MESSAGE.NOT_FOUND_USERNAME)
+                    .build();
         } else {
-            UserExistDTO userExistDTO = new UserExistDTO();
-            userExistDTO.setHasAccount(true);
-            userExistDTO.setIsEnable(user.isEnable());
+            String loginMethodType;
             if (!ObjectUtils.isEmpty(user.getLoginMethodType()) && user.getLoginMethodType().equals(LoginMethodType.VERIFY_CODE)) {
-                userExistDTO.setLoginMethodType(LoginMethodType.VERIFY_CODE.name());
+                loginMethodType = LoginMethodType.VERIFY_CODE.name();
                 //toDo send verify code
                 Integer verifyCode = verificationService.generateVerifyCode(username, VerifyCodeType.LOGIN);
                 messageSender.sendVerifyCode(username, verifyCode);
             } else {
-                userExistDTO.setLoginMethodType(LoginMethodType.PASSWORD.name());
+                loginMethodType = LoginMethodType.PASSWORD.name();
             }
-            return new ResponseDTO<>(HttpStatus.OK.value(), StaticMessage.RESPONSE_MESSAGE.USER_HAS_ACCOUNT, userExistDTO);
+            return UserExistDTO.builder()
+                    .hasAccount(true)
+                    .message(StaticMessage.RESPONSE_MESSAGE.USER_HAS_ACCOUNT)
+                    .loginMethodType(loginMethodType)
+                    .isEnable(user.isEnable())
+                    .build();
         }
     }
 

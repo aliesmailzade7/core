@@ -1,12 +1,12 @@
 package com.cybercenter.core.auth.controller;
 
 import com.cybercenter.core.auth.dto.*;
-import com.cybercenter.core.base.dto.ResponseDTO;
 import com.cybercenter.core.auth.service.AuthService;
 import com.cybercenter.core.secority.jwt.JwtUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -43,8 +43,8 @@ public class AuthController {
     @Operation(summary = "check user has account")
     public ResponseEntity<?> userExistence(@Valid @RequestBody VerifyRequestDTO verifyRequestDTO) {
         log.info("REST request to check user has account with username : {}", verifyRequestDTO.getUsername());
-        ResponseDTO<UserExistDTO> existUser = authService.isExistUser(verifyRequestDTO.getUsername());
-        return ResponseEntity.status(existUser.getStatus()).body(existUser);
+        UserExistDTO existUser = authService.isExistUser(verifyRequestDTO.getUsername());
+        return ResponseEntity.status(existUser.isHasAccount() ? HttpStatus.OK : HttpStatus.NOT_FOUND).body(existUser);
     }
 
     @PostMapping("change-login-type")

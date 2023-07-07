@@ -1,7 +1,5 @@
 package com.cybercenter.core.mesage.message;
 
-import com.cybercenter.core.base.constant.StaticMessage;
-import com.cybercenter.core.base.dto.ResponseDTO;
 import com.cybercenter.core.mesage.message.constant.MessageType;
 import com.cybercenter.core.mesage.message.service.MessageLogService;
 import com.cybercenter.core.mesage.message.service.email.EmailService;
@@ -15,7 +13,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
 
 import java.util.Map;
-import java.util.Objects;
 
 @Component
 @RequiredArgsConstructor
@@ -47,8 +44,12 @@ public class MessageSender {
                 .type(MessageType.EMAIL)
                 .tokens(tokens)
                 .build();
-        ResponseDTO responseDTO = emailService.sendSimpleMail(messageDTO);
-        messageDTO.setSendSuccess(Objects.equals(responseDTO.getStatus(), StaticMessage.RESPONSE_CODE.OK));
+        try {
+            emailService.sendSimpleMail(messageDTO);
+            messageDTO.setSendSuccess(true);
+        }catch (Exception e){
+            messageDTO.setSendSuccess(false);
+        }
         messageLogService.save(messageDTO);
     }
 

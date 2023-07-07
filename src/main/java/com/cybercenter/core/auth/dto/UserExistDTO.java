@@ -1,12 +1,17 @@
 package com.cybercenter.core.auth.dto;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import lombok.Builder;
+import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 
-@Getter
-@Setter
+@Data
+@Builder
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class UserExistDTO {
     private boolean hasAccount;
+    private String message;
     private String loginMethodType;
     private Boolean isEnable;
 }
