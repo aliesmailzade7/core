@@ -6,7 +6,7 @@ public interface StaticMessage {
         String INVALID_VERIFY_CODE = "کد تایید نامعتبر است.";
         String NOT_FOUND_USERNAME = "کاربر یافت نشد.";
         String Duplicate_USERNAME = "نام کاربری تکراری است.";
-        String INVALID_MESSAGE_TYPE = "نوع پیام نامعتبر است.";
+        String NOT_FOUND_USER = ";اطلاعات کاربر یافت نشد.";
         String USER_BLOCK_ONE_DAY = "به دلیل تلاش بیش از حد برای احراز هویت به مدت یک ساعت قادر به ورود نمی باشید";
         String USER_ACCOUNT_BLOCK = "حساب کاربری شما مسدود شده است";
         String UNABLE_GET_VERIFY_CODE = "به دلیل عدم ثبت شماره همراه و ادرس ایمیل امکان ارسال کد یکبار مصرف نیست";

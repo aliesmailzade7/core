@@ -1,29 +1,25 @@
 package com.cybercenter.core.service;
 
 import com.cybercenter.core.constant.BaseUserRole;
-import com.cybercenter.core.constant.LoginMethodType;
 import com.cybercenter.core.constant.VerifyCodeType;
 import com.cybercenter.core.dto.RegisterRequestDTO;
 import com.cybercenter.core.dto.UserInfoDTO;
 import com.cybercenter.core.dto.VerificationDTO;
 import com.cybercenter.core.entity.Role;
 import com.cybercenter.core.entity.User;
-import com.cybercenter.core.exception.EXPEmailAddressIsExist;
-import com.cybercenter.core.exception.EXPInvalidVerifyCode;
-import com.cybercenter.core.exception.EXPNotFoundUserName;
-import com.cybercenter.core.exception.EXPPhoneNumberIsExist;
+import com.cybercenter.core.exception.*;
 import com.cybercenter.core.mapper.UserMapper;
 import com.cybercenter.core.otp.VerificationUtils;
 import com.cybercenter.core.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -33,9 +29,18 @@ public class UserService {
     private final UserMapper userMapper;
     private final RoleService roleService;
     private final VerificationUtils verificationUtils;
+    private final PasswordEncoder passwordEncoder;
 
     public User findByUserName(String username) {
         return userRepository.findByUsername(username).orElse(null);
+    }
+
+    public User findById(long userId) {
+        return userRepository.findById(userId).orElseThrow(EXPNotFoundUserInfo::new);
+    }
+
+    public Page<UserInfoDTO> findAll(Pageable pageable) {
+        return userRepository.findAll(pageable).map(userMapper::toDTO);
     }
 
     public void save(User user) {
@@ -60,33 +65,6 @@ public class UserService {
     }
 
     /**
-     * Method for update the last login method type.
-     *
-     * @param username          - Username
-     * @param loginMethodTypeId - LoginMethodType object
-     */
-    public void updateLoginMethodType(String username, LoginMethodType loginMethodTypeId) {
-        User user = findByUserName(username);
-        if (!ObjectUtils.isEmpty(user) && (ObjectUtils.isEmpty(user.getLoginMethodType()) || !user.getLoginMethodType().equals(loginMethodTypeId))) {
-            user.setLoginMethodType(loginMethodTypeId);
-            userRepository.save(user);
-        }
-    }
-
-    /**
-     * Method for update the last login method type.
-     *
-     * @param user              - user object
-     * @param loginMethodTypeId - LoginMethodType object
-     */
-    public void updateLoginMethodType(User user, LoginMethodType loginMethodTypeId) {
-        if (ObjectUtils.isEmpty(user.getLoginMethodType()) || !user.getLoginMethodType().equals(loginMethodTypeId)) {
-            user.setLoginMethodType(loginMethodTypeId);
-            userRepository.save(user);
-        }
-    }
-
-    /**
      * Method for get the user info.
      *
      * @param userName - username
@@ -101,22 +79,19 @@ public class UserService {
             throw new EXPNotFoundUserName();
     }
 
-    public void updateProfile(UserInfoDTO userInfoDTO, String username) {
-        User user = findByUserName(username);
-        if (!ObjectUtils.isEmpty(user)) {
-            checkChangePhoneNumber(user, userInfoDTO);
-            checkChangeEmail(user, userInfoDTO);
-            userMapper.updateUserInfo(user, userInfoDTO);
-            userRepository.save(user);
-        } else
-            throw new EXPNotFoundUserName();
+    public void updateProfile(long userId, UserInfoDTO userInfoDTO) {
+        User user = findById(userId);
+        checkChangePhoneNumber(user, userInfoDTO);
+        checkChangeEmail(user, userInfoDTO);
+        userMapper.updateUserInfo(user, userInfoDTO);
+        userRepository.save(user);
     }
 
     private void checkChangeEmail(User user, UserInfoDTO userInfoDTO) {
-        if (!ObjectUtils.isEmpty(userInfoDTO.getEmail()) && !userInfoDTO.getEmail().equals(user.getEmail())){
+        if (!ObjectUtils.isEmpty(userInfoDTO.getEmail()) && !userInfoDTO.getEmail().equals(user.getEmail())) {
             checkIsExistEmail(userInfoDTO.getEmail());
             user.setEmail(user.getEmail());
-            if (!ObjectUtils.isEmpty(userInfoDTO.getVerifyEmailCode())){
+            if (!ObjectUtils.isEmpty(userInfoDTO.getVerifyEmailCode())) {
                 boolean validateVerifyCode = verificationUtils.validateVerifyCode(userInfoDTO.getEmail(), userInfoDTO.getVerifyEmailCode(), VerifyCodeType.VERIFY_EMAIL);
                 if (validateVerifyCode)
                     user.setVerifyEmail(true);
@@ -133,10 +108,10 @@ public class UserService {
     }
 
     private void checkChangePhoneNumber(User user, UserInfoDTO userInfoDTO) {
-        if (!ObjectUtils.isEmpty(userInfoDTO.getPhoneNumber()) && !userInfoDTO.getPhoneNumber().equals(user.getPhoneNumber())){
+        if (!ObjectUtils.isEmpty(userInfoDTO.getPhoneNumber()) && !userInfoDTO.getPhoneNumber().equals(user.getPhoneNumber())) {
             checkIsExistPhoneNumber(userInfoDTO.getPhoneNumber());
             user.setPhoneNumber(user.getPhoneNumber());
-            if (!ObjectUtils.isEmpty(userInfoDTO.getVerifyPhoneNumberCode())){
+            if (!ObjectUtils.isEmpty(userInfoDTO.getVerifyPhoneNumberCode())) {
                 boolean validateVerifyCode = verificationUtils.validateVerifyCode(userInfoDTO.getPhoneNumber(), userInfoDTO.getVerifyPhoneNumberCode(), VerifyCodeType.VERIFY_PHONE_NUMBER);
                 if (validateVerifyCode)
                     user.setVerifyPhoneNumber(true);
@@ -183,7 +158,15 @@ public class UserService {
         }
     }
 
-    public Page<UserInfoDTO> getAll(Pageable pageable) {
-        return userRepository.findAll(pageable).map(userMapper::toDTO);
+    public void blockAndUnblockUser(long userId) {
+        User user = findById(userId);
+        user.setEnable(!user.isEnable());
+        userRepository.save(user);
+    }
+
+    public void setNewPassword(long userId, String newPassword) {
+        User user = findById(userId);
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
     }
 }

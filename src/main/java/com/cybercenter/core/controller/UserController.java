@@ -1,6 +1,5 @@
 package com.cybercenter.core.controller;
 
-import com.cybercenter.core.constant.Authority;
 import com.cybercenter.core.constant.VerifyCodeType;
 import com.cybercenter.core.dto.UserInfoDTO;
 import com.cybercenter.core.dto.VerificationDTO;
@@ -47,15 +46,13 @@ public class UserController extends BaseController {
     @GetMapping("/profile")
     @Operation(summary = "get profile info")
     public ResponseEntity<?> getProfile(HttpServletRequest request) {
-        checkAuthorities(Authority.OP_ACCESS_USER.name(), request);
         return ResponseEntity.ok().body(userService.getUserProfile(getUsername(request)));
     }
 
     @PutMapping("/profile")
     @Operation(summary = "update profile info")
     public ResponseEntity<?> updateProfile(@Valid @RequestBody UserInfoDTO userInfoDTO, HttpServletRequest request) {
-        checkAuthorities(Authority.OP_ACCESS_USER.name(), request);
-        userService.updateProfile(userInfoDTO, getUsername(request));
+        userService.updateProfile(getUserId(request), userInfoDTO);
         return ResponseEntity.accepted().build();
     }
 

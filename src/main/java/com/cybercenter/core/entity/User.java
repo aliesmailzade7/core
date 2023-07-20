@@ -1,7 +1,6 @@
 package com.cybercenter.core.entity;
 
 import com.cybercenter.core.constant.Education;
-import com.cybercenter.core.constant.LoginMethodType;
 import com.vladmihalcea.hibernate.type.json.JsonStringType;
 import lombok.Getter;
 import lombok.Setter;
@@ -36,8 +35,6 @@ public class User implements Serializable {
     @Enumerated(EnumType.STRING)
     private Education education;
     private String orientation;
-    @Enumerated(EnumType.STRING)
-    private LoginMethodType loginMethodType;
     private boolean enable;
 
     @ManyToMany(fetch = FetchType.EAGER)

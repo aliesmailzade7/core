@@ -58,9 +58,6 @@ public class AuthService {
             UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
             jwtResponseDTO.setRefreshToken(refreshTokenService.createRefreshToken(userPrincipal.user().getId()).getToken());
 
-            //update login method type
-            userService.updateLoginMethodType(userPrincipal.user(), LoginMethodType.PASSWORD);
-
             return jwtResponseDTO;
         } catch (AuthenticationException exception) {
             throw new EXPInvalidUserOrPassword();
@@ -93,9 +90,6 @@ public class AuthService {
         JwtResponseDTO jwtResponseDTO = jwtUtils.generateTokenByUsername(username);
         //ToDo set refresh token
         jwtResponseDTO.setRefreshToken(refreshTokenService.createRefreshToken(user.getId()).getToken());
-
-        //ToDo update login method type
-        userService.updateLoginMethodType(user, LoginMethodType.VERIFY_CODE);
 
         return jwtResponseDTO;
     }
