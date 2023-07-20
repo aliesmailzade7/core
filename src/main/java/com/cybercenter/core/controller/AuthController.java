@@ -1,17 +1,14 @@
 package com.cybercenter.core.controller;
 
-import com.cybercenter.core.service.AuthService;
+import com.cybercenter.core.constant.VerifyCodeType;
 import com.cybercenter.core.dto.*;
 import com.cybercenter.core.security.jwt.JwtUtils;
+import com.cybercenter.core.service.AuthService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 
@@ -26,32 +23,40 @@ public class AuthController {
 
     @PostMapping("login/password")
     @Operation(summary = "login user by password")
-    public ResponseEntity<?> loginByPassword(@Valid @RequestBody PasswordTokenRequestDTO passwordTokenRequestDTO) {
-        log.info("REST request to login user by password with : {}", passwordTokenRequestDTO);
-        return ResponseEntity.ok().body(authService.loginWithPassword(passwordTokenRequestDTO));
+    public ResponseEntity<?> loginByPassword(@Valid @RequestBody PasswordLoginRequestDTO passwordLoginRequestDTO) {
+        log.info("REST request to login user by password with : {}", passwordLoginRequestDTO);
+        return ResponseEntity.ok().body(authService.loginWithPassword(passwordLoginRequestDTO));
     }
 
     @PostMapping("login/verify-code")
     @Operation(summary = "login user by verify code")
-    public ResponseEntity<?> loginByVerifyCode(@Valid @RequestBody VerifyCodeTokenRequestDTO verifyCodeTokenRequestDTO) {
+    public ResponseEntity<?> loginByVerifyCode(@Valid @RequestBody VerifyCodeLoginRequestDTO verifyCodeTokenRequestDTO) {
         log.info("REST request to login user by verify code with : {}", verifyCodeTokenRequestDTO);
         return ResponseEntity.ok().body(authService.loginWithVerifyCode(verifyCodeTokenRequestDTO));
     }
 
-    @PostMapping("user-existence")
-    @Operation(summary = "check user has account")
-    public ResponseEntity<?> userExistence(@Valid @RequestBody VerifyRequestDTO verifyRequestDTO) {
-        log.info("REST request to check user has account with username : {}", verifyRequestDTO.getUsername());
-        UserExistDTO existUser = authService.isExistUser(verifyRequestDTO.getUsername());
-        return ResponseEntity.status(existUser.isHasAccount() ? HttpStatus.OK : HttpStatus.NOT_FOUND).body(existUser);
+    @PostMapping("verify-phone-number/{phoneNumber}")
+    @Operation(summary = "create verify code to verification phone number")
+    public ResponseEntity<?> verifyPhoneNumber(@PathVariable String phoneNumber) {
+        log.info("REST request to send code to verify phone number with number : {}", phoneNumber);
+        ResponseDTO result = authService.sendPhoneNumberVerifyCode(phoneNumber);
+        return ResponseEntity.ok().body(result);
+    }
+
+    @PostMapping("verify-email/{email}")
+    @Operation(summary = "create verify code to verification email address")
+    public ResponseEntity<?> verifyEmail(@PathVariable String email) {
+        log.info("REST request to send code to verify email with address : {}", email);
+        ResponseDTO result = authService.sendEmailVerifyCode(email);
+        return ResponseEntity.ok().body(result);
     }
 
     @PostMapping("change-login-type")
     @Operation(summary = "change login method type to verify code")
-    public ResponseEntity<?> changeLoginMethod(@Valid @RequestBody VerifyRequestDTO verifyRequestDTO) {
-        log.info("REST request to change login method type with username : {}", verifyRequestDTO.getUsername());
-        authService.changeLoginMethodTypeToVerifyCode(verifyRequestDTO.getUsername());
-        return ResponseEntity.accepted().build();
+    public ResponseEntity<?> changeLoginMethod(@Valid @RequestBody LoginRequestDTO loginRequestDTO) {
+        log.info("REST request to change login method type with username : {}", loginRequestDTO.getUsername());
+        ResponseDTO result = authService.sendUserVerifyCode(loginRequestDTO.getUsername(), VerifyCodeType.LOGIN);
+        return ResponseEntity.ok(result);
     }
 
     @PostMapping("register")
@@ -72,10 +77,10 @@ public class AuthController {
 
     @PostMapping("forget-password")
     @Operation(summary = "create verify code to forget password")
-    public ResponseEntity<?> forgetPassword(@Valid @RequestBody VerifyRequestDTO verifyRequestDTO) {
-        log.info("REST request to refresh token with username : {}", verifyRequestDTO.getUsername());
-        authService.forgetPassword(verifyRequestDTO.getUsername());
-        return ResponseEntity.accepted().build();
+    public ResponseEntity<?> forgetPassword(@Valid @RequestBody LoginRequestDTO loginRequestDTO) {
+        log.info("REST request to forget password with username : {}", loginRequestDTO.getUsername());
+        ResponseDTO result = authService.sendUserVerifyCode(loginRequestDTO.getUsername(), VerifyCodeType.FORGET_PASSWORD);
+        return ResponseEntity.ok(result);
     }
 
     @PostMapping("new-password")

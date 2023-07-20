@@ -10,6 +10,8 @@ import org.mapstruct.MappingTarget;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
 
+import javax.persistence.PreUpdate;
+
 @Mapper(componentModel = "spring", imports = {Education.class, ObjectUtils.class})
 @Component
 public interface UserMapper {

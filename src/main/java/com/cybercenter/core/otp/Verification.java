@@ -10,6 +10,6 @@ import java.io.Serializable;
 @Setter
 @Builder
 public class Verification implements Serializable {
-    private String username;
+    private String key;
     private Integer verifyCode;
 }

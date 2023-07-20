@@ -1,7 +1,7 @@
 package com.cybercenter.core.entity;
 
-import com.cybercenter.core.constant.LoginMethodType;
 import com.cybercenter.core.constant.Education;
+import com.cybercenter.core.constant.LoginMethodType;
 import com.vladmihalcea.hibernate.type.json.JsonStringType;
 import lombok.Getter;
 import lombok.Setter;
@@ -29,7 +29,9 @@ public class User implements Serializable {
     private String lastName;
     private String birthDay;
     private String email;
+    private boolean isVerifyEmail;
     private String phoneNumber;
+    private boolean isVerifyPhoneNumber;
     private String job;
     @Enumerated(EnumType.STRING)
     private Education education;

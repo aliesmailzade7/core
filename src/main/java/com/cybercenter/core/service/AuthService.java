@@ -1,17 +1,15 @@
 package com.cybercenter.core.service;
 
-import com.cybercenter.core.constant.StaticMessage;
+import com.cybercenter.core.constant.*;
 import com.cybercenter.core.dto.*;
+import com.cybercenter.core.entity.User;
 import com.cybercenter.core.exception.*;
+import com.cybercenter.core.otp.VerificationUtils;
 import com.cybercenter.core.security.jwt.JwtUtils;
 import com.cybercenter.core.security.jwt.UserPrincipal;
-import com.cybercenter.core.constant.BaseUserRole;
-import com.cybercenter.core.constant.LoginMethodType;
-import com.cybercenter.core.constant.VerifyCodeType;
-import com.cybercenter.core.entity.User;
-import com.cybercenter.core.otp.VerificationUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -23,6 +21,7 @@ import org.springframework.util.ObjectUtils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @Component
 @RequiredArgsConstructor
@@ -34,32 +33,32 @@ public class AuthService {
     private final UserService userService;
     private final PasswordEncoder passwordEncoder;
     private final VerificationUtils verificationUtils;
-    private final MessageSender messageSender;
+    private final MessageSenderWrapper messageSenderWrapper;
     private final RefreshTokenService refreshTokenService;
     private final LoginAttemptService loginAttemptService;
 
     /**
      * Method for login With Password.
      *
-     * @param passwordTokenRequestDTO PasswordTokenRequestDTO object
+     * @param passwordLoginRequestDTO PasswordTokenRequestDTO object
      * @return JwtResponse object - jwt token
      */
-    public JwtResponseDTO loginWithPassword(PasswordTokenRequestDTO passwordTokenRequestDTO) {
+    public JwtResponseDTO loginWithPassword(PasswordLoginRequestDTO passwordLoginRequestDTO) {
         if (loginAttemptService.isBlocked()) {
-            throw new EXPUserAuthBloack();
+            throw new EXPUserAuthBlock();
         }
-        UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(passwordTokenRequestDTO.getUsername(), passwordTokenRequestDTO.getPassword());
+        UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(passwordLoginRequestDTO.getUsername(), passwordLoginRequestDTO.getPassword());
         try {
             Authentication authentication = authenticationManager.authenticate(authenticationToken);
             JwtResponseDTO jwtResponseDTO = jwtUtils.generateJwtToken(authentication);
 
             SecurityContextHolder.getContext().setAuthentication(authentication);
 
-            //ToDo set refresh token
+            //set refresh token
             UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
             jwtResponseDTO.setRefreshToken(refreshTokenService.createRefreshToken(userPrincipal.user().getId()).getToken());
 
-            //ToDo update login method type
+            //update login method type
             userService.updateLoginMethodType(userPrincipal.user(), LoginMethodType.PASSWORD);
 
             return jwtResponseDTO;
@@ -74,9 +73,9 @@ public class AuthService {
      * @param verifyCodeTokenRequestDTO verifyTokenRequestDTO object
      * @return JwtResponse object - jwt token
      */
-    public JwtResponseDTO loginWithVerifyCode(VerifyCodeTokenRequestDTO verifyCodeTokenRequestDTO) {
+    public JwtResponseDTO loginWithVerifyCode(VerifyCodeLoginRequestDTO verifyCodeTokenRequestDTO) {
         if (loginAttemptService.isBlocked()) {
-            throw new EXPUserAuthBloack();
+            throw new EXPUserAuthBlock();
         }
         String username = verifyCodeTokenRequestDTO.getUsername();
         Integer verifyCode = verifyCodeTokenRequestDTO.getVerifyCode();
@@ -102,51 +101,93 @@ public class AuthService {
     }
 
     /**
-     * Method for check user isExist.
-     * if there is not any user, register verify code will be sent.
-     * if there is a user, check type of login. if it is verifyCode, login verify code will be sent.
+     * Method for verify phone number.
+     * generate verify code and send to user phone number
      *
-     * @param username - phone | email
-     * @return UserExistDTO object - jwt token
+     * @param phoneNumber - phone.
      */
-    public UserExistDTO isExistUser(String username) {
-        //todo check user is Exist
-        User user = userService.findByUserName(username);
-        if (ObjectUtils.isEmpty(user)) {
-            //toDo send verify code
-            Integer verifyCode = verificationUtils.generateVerifyCode(username, VerifyCodeType.REGISTER);
-            messageSender.sendVerifyCode(username, verifyCode);
-            return UserExistDTO.builder()
-                    .hasAccount(false)
-                    .message(StaticMessage.RESPONSE_MESSAGE.NOT_FOUND_USERNAME)
-                    .build();
-        } else {
-            String loginMethodType;
-            if (!ObjectUtils.isEmpty(user.getLoginMethodType()) && user.getLoginMethodType().equals(LoginMethodType.VERIFY_CODE)) {
-                loginMethodType = LoginMethodType.VERIFY_CODE.name();
-                //toDo send verify code
-                Integer verifyCode = verificationUtils.generateVerifyCode(username, VerifyCodeType.LOGIN);
-                messageSender.sendVerifyCode(username, verifyCode);
-            } else {
-                loginMethodType = LoginMethodType.PASSWORD.name();
-            }
-            return UserExistDTO.builder()
-                    .hasAccount(true)
-                    .message(StaticMessage.RESPONSE_MESSAGE.USER_HAS_ACCOUNT)
-                    .loginMethodType(loginMethodType)
-                    .isEnable(user.isEnable())
-                    .build();
-        }
+    public ResponseDTO sendPhoneNumberVerifyCode(String phoneNumber) {
+        Integer verifyCode = verificationUtils.generateVerifyCode(phoneNumber, VerifyCodeType.VERIFY_PHONE_NUMBER);
+        messageSenderWrapper.sendMessage(MessageDTO.builder()
+                .to(phoneNumber)
+                .messageType(MessageType.SMS.getId())
+                .template("verify_phone_number")
+                .tokens(Map.of("verifyCode", String.valueOf(verifyCode)))
+                .build());
+
+        return ResponseDTO.builder()
+                .code(HttpStatus.OK.value())
+                .message(StaticMessage.RESPONSE_MESSAGE.SEND_OTP_TO_PHONE_NUMBER)
+                .build();
     }
 
     /**
-     * Method for change login method type to verify code.
+     * Method for verify email address.
+     * generate verify code and send to user email address
      *
-     * @param username - phone | email
+     * @param email - email.
      */
-    public void changeLoginMethodTypeToVerifyCode(String username) {
-        Integer verifyCode = verificationUtils.generateVerifyCode(username, VerifyCodeType.LOGIN);
-        messageSender.sendVerifyCode(username, verifyCode);
+    public ResponseDTO sendEmailVerifyCode(String email) {
+        Integer verifyCode = verificationUtils.generateVerifyCode(email, VerifyCodeType.VERIFY_EMAIL);
+        messageSenderWrapper.sendMessage(MessageDTO.builder()
+                .to(email)
+                .messageType(MessageType.EMAIL.getId())
+                .template("verify_email_address")
+                .tokens(Map.of("verifyCode", String.valueOf(verifyCode)))
+                .build());
+
+        return ResponseDTO.builder()
+                .code(HttpStatus.OK.value())
+                .message(StaticMessage.RESPONSE_MESSAGE.SEND_OTP_TO_EMAIL_ADDRESS)
+                .build();
+    }
+
+    /**
+     * Method for send user verify code.
+     *
+     * @param username - username
+     * @return ResponseDTO - result message
+     */
+    public ResponseDTO sendUserVerifyCode(String username, VerifyCodeType verifyCodeType) {
+        User user = userService.findByUserName(username);
+
+        //check user isExist and active
+        checkUserAccount(user);
+
+        //check is not null phone number or email address
+        String sendMessageTo;
+        int messageType;
+        if (!ObjectUtils.isEmpty(user.getPhoneNumber())) {
+            sendMessageTo = user.getPhoneNumber();
+            messageType = MessageType.SMS.getId();
+        } else if (!ObjectUtils.isEmpty(user.getEmail())) {
+            sendMessageTo = user.getEmail();
+            messageType = MessageType.EMAIL.getId();
+        } else
+            throw new EXPUnableToLoginWithVerifyCode();
+
+        //generate verify code
+        Integer verifyCode = verificationUtils.generateVerifyCode(username, verifyCodeType);
+        messageSenderWrapper.sendMessage(MessageDTO.builder()
+                .to(sendMessageTo)
+                .messageType(messageType)
+                .template("login_verify_code")
+                .tokens(Map.of("verifyCode", String.valueOf(verifyCode)))
+                .build());
+
+        return ResponseDTO.builder()
+                .code(HttpStatus.OK.value())
+                .message(messageType == MessageType.SMS.getId() ? StaticMessage.RESPONSE_MESSAGE.SEND_OTP_TO_PHONE_NUMBER : StaticMessage.RESPONSE_MESSAGE.SEND_OTP_TO_EMAIL_ADDRESS)
+                .build();
+    }
+
+
+    private void checkUserAccount(User user) {
+        if (ObjectUtils.isEmpty(user)) {
+            throw new EXPNotFoundUserName();
+        } else if (!user.isEnable()) {
+            throw new EXPUserAccountBlock();
+        }
     }
 
     /**
@@ -157,38 +198,35 @@ public class AuthService {
      * @throws EXPInvalidVerifyCode when verify code is not valid
      */
     public void registerUser(RegisterRequestDTO registerRequestDTO) {
-        //ToDo check username isExist
+        //check username isExist
         User user = userService.findByUserName(registerRequestDTO.getUsername());
         if (!ObjectUtils.isEmpty(user)) {
             throw new EXPUsernameIsExist();
         }
 
-        //toDo check verifyCode
-        boolean isValidVerifyCode = verificationUtils.validateVerifyCode(registerRequestDTO.getUsername(), registerRequestDTO.getVerifyCode(), VerifyCodeType.REGISTER);
-        if (!isValidVerifyCode) {
-            throw new EXPInvalidVerifyCode();
-        }
+        checkVerifyCode(registerRequestDTO);
 
         registerRequestDTO.setPassword(passwordEncoder.encode(registerRequestDTO.getPassword()));
 
-        //toDo add role and save user
+        //add role and save user
         userService.save(registerRequestDTO, new ArrayList<>(List.of(BaseUserRole.ROLE_USER, BaseUserRole.ROLE_AUTHOR)));
     }
 
-    /**
-     * Method for request change password.
-     * generate verify code and send to user
-     *
-     * @param username - username
-     */
-    public void forgetPassword(String username) {
-        User user = userService.findByUserName(username);
-        if (ObjectUtils.isEmpty(user)) {
-            throw new EXPNotFoundUserName();
+    private void checkVerifyCode(RegisterRequestDTO registerRequestDTO) {
+        if (!ObjectUtils.isEmpty(registerRequestDTO.getVerifyPhoneNumberCode())){
+            boolean validateVerifyCode = verificationUtils.validateVerifyCode(registerRequestDTO.getPhoneNumber(), registerRequestDTO.getVerifyPhoneNumberCode(), VerifyCodeType.VERIFY_PHONE_NUMBER);
+            if (validateVerifyCode)
+                registerRequestDTO.setVerifyPhoneNumber(true);
+            else
+                throw new EXPInvalidVerifyCode();
         }
-
-        Integer verifyCode = verificationUtils.generateVerifyCode(username, VerifyCodeType.FORGET_PASSWORD);
-        messageSender.sendVerifyCode(username, verifyCode);
+        if (!ObjectUtils.isEmpty(registerRequestDTO.getVerifyEmailCode())){
+            boolean validateVerifyCode = verificationUtils.validateVerifyCode(registerRequestDTO.getEmail(), registerRequestDTO.getVerifyEmailCode(), VerifyCodeType.VERIFY_EMAIL);
+            if (validateVerifyCode)
+                registerRequestDTO.setVerifyEmail(true);
+            else
+                throw new EXPInvalidVerifyCode();
+        }
     }
 
     /**

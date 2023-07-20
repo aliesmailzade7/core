@@ -8,7 +8,7 @@ import javax.validation.constraints.NotNull;
 
 @Getter
 @ToString
-public class PasswordTokenRequestDTO extends VerifyRequestDTO{
+public class PasswordLoginRequestDTO extends LoginRequestDTO {
 
     @NotNull(message = ValidationMessages.USER.PASSWORD_REQUIRED)
     private String password;

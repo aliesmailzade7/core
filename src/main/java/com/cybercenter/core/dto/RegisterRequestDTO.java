@@ -14,7 +14,9 @@ import java.util.List;
 @Setter
 @ToString
 public class RegisterRequestDTO {
+
     private Long id;
+
     @NotNull(message = ValidationMessages.USER.USERNAME_REQUIRED)
     private String username;
 
@@ -32,19 +34,25 @@ public class RegisterRequestDTO {
     @Email(message = ValidationMessages.USER.EMAIL_ADDRESS_WRONG_PATTERN)
     private String email;
 
+    @Max(value = 999999, message = ValidationMessages.AUTH.VERIFY_CODE_INVALID)
+    @Min(value = 0, message = ValidationMessages.AUTH.VERIFY_CODE_INVALID)
+    private Integer verifyEmailCode;
+
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    private boolean isVerifyEmail = false;
+
     @Pattern(regexp = "^(09[0-9]{9})$", message = ValidationMessages.USER.PHONE_NUMBER_WRONG_PATTERN)
     private String phoneNumber;
 
-    @NotNull(message = ValidationMessages.USER.VERIFY_CODE_REQUIRED)
     @Max(value = 999999, message = ValidationMessages.AUTH.VERIFY_CODE_INVALID)
     @Min(value = 0, message = ValidationMessages.AUTH.VERIFY_CODE_INVALID)
-    private Integer verifyCode;
+    private Integer verifyPhoneNumberCode;
+
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    private boolean isVerifyPhoneNumber = false;
 
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private boolean enable = true;
-
-    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
-    private String loginMethodType;
 
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private List<Role> roles;

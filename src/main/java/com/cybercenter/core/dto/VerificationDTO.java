@@ -6,7 +6,8 @@ import lombok.Getter;
 import javax.validation.constraints.NotNull;
 
 @Getter
-public class VerifyRequestDTO {
-    @NotNull(message = ValidationMessages.USER.USERNAME_REQUIRED)
-    private String username;
+public class VerificationDTO {
+
+    @NotNull(message = ValidationMessages.USER.VERIFY_CODE_REQUIRED)
+    private int verifyCode;
 }
