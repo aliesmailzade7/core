@@ -105,7 +105,7 @@ public class AuthService {
         messageSenderWrapper.sendMessage(MessageDTO.builder()
                 .to(phoneNumber)
                 .messageType(MessageType.SMS.getId())
-                .template("verify_phone_number")
+                .template(MessageTemplate.AUTH.VERIFY_EMAIL_ADDRESS)
                 .tokens(Map.of("verifyCode", String.valueOf(verifyCode)))
                 .build());
 
@@ -203,7 +203,7 @@ public class AuthService {
         registerRequestDTO.setPassword(passwordEncoder.encode(registerRequestDTO.getPassword()));
 
         //add role and save user
-        userService.save(registerRequestDTO, new ArrayList<>(List.of(BaseUserRole.ROLE_USER, BaseUserRole.ROLE_AUTHOR)));
+        userService.save(registerRequestDTO, new ArrayList<>(List.of(BaseUserRole.ROLE_USER, BaseUserRole.ROLE_AUTHOR_3)));
     }
 
     private void checkVerifyCode(RegisterRequestDTO registerRequestDTO) {

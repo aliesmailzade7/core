@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 
 import java.util.ArrayList;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -23,15 +24,35 @@ public class RoleService {
      *
      * @param baseUserRole - BaseUserRole object
      */
-    @Cacheable(key = "#baseUserRole.id")
+//    @Cacheable(key = "#role.id")
     public Role createRoleIfNotFound(BaseUserRole baseUserRole) {
-        Role role = roleRepository.findByName(baseUserRole.getName());
+        Role role = roleRepository.findByTitle(baseUserRole.getTitle());
         if (ObjectUtils.isEmpty(role)) {
             Role newRole = new Role();
-            newRole.setName(baseUserRole.getName());
+            newRole.setTitle(baseUserRole.getTitle());
             newRole.setAuthorities(new ArrayList<>());
             return roleRepository.save(newRole);
         }
         return role;
+    }
+
+    /**
+     * Method for get role list.
+     *
+     * @return list<Role>
+     */
+    @Cacheable(key = "'list'")
+    public List<Role> findAll() {
+        return roleRepository.findAll();
+    }
+
+    /**
+     * Method for get role by id.
+     *
+     * @return list<Role>
+     */
+    @Cacheable
+    public Role findById(int id) {
+        return roleRepository.findById(id).orElse(null);
     }
 }

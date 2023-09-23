@@ -169,4 +169,13 @@ public class UserService {
         user.setPassword(passwordEncoder.encode(newPassword));
         userRepository.save(user);
     }
+
+    public void addRole(long userId, List<Integer> roleIds) {
+        User user = findById(userId);
+        List<Role> roles = roleService.findAll().stream()
+                .filter(role -> roleIds.contains(role.getId()))
+                .toList();
+        user.setRoles(roles);
+        save(user);
+    }
 }

@@ -1,10 +1,12 @@
 package com.cybercenter.core.constant;
 
 import com.cybercenter.core.exception.EXPInvalidEducation;
+import lombok.Getter;
 import org.springframework.util.ObjectUtils;
 
 import java.util.stream.Stream;
 
+@Getter
 public enum Education {
     SCHOOL(1, "زیر دیپلم"),
     DIPLOMA(2, "دیپلم"),
@@ -30,11 +32,4 @@ public enum Education {
                 .orElseThrow(EXPInvalidEducation::new);
     }
 
-    public int getId() {
-        return id;
-    }
-
-    public String getTitle() {
-        return title;
-    }
 }

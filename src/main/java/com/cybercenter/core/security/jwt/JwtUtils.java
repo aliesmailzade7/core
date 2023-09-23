@@ -55,7 +55,7 @@ public class JwtUtils {
         claims.put("lastName", userPrincipal.user().getLastName());
         claims.put("roles", userPrincipal.user().getRoles()
                 .stream()
-                .map(Role::getName)
+                .map(Role::getTitle)
                 .collect(Collectors.toList()));
         claims.put("authorities", userPrincipal.getAuthorities()
                 .stream()
@@ -72,7 +72,7 @@ public class JwtUtils {
 
         return JwtResponseDTO.builder()
                 .accessToken(token)
-                .scope(userPrincipal.user().getRoles().stream().map(Role::getName).collect(Collectors.toSet()))
+                .scope(userPrincipal.user().getRoles().stream().map(Role::getTitle).collect(Collectors.toSet()))
                 .tokenType("bearer")
                 .expiresIn(System.currentTimeMillis() + jwtExpirationMs)
                 .build();
